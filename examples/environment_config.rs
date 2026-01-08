@@ -13,11 +13,11 @@
 //! - AZURE_KEYVAULT_URL: Azure Key Vault URL (for Azure backend)
 
 use std::env;
-use vaultmux::{factory, Backend, Config, BackendType};
+use vaultmux::{factory, Backend, BackendType, Config};
 
 fn get_backend_from_env() -> vaultmux::Result<BackendType> {
     let backend_str = env::var("VAULT_BACKEND").unwrap_or_else(|_| "mock".to_string());
-    
+
     let backend_type = match backend_str.to_lowercase().as_str() {
         "mock" => BackendType::Pass,
         "pass" => BackendType::Pass,
@@ -34,19 +34,19 @@ fn get_backend_from_env() -> vaultmux::Result<BackendType> {
             )));
         }
     };
-    
+
     Ok(backend_type)
 }
 
 fn build_config() -> vaultmux::Result<Config> {
     let backend_type = get_backend_from_env()?;
     let mut config = Config::new(backend_type);
-    
+
     // Add prefix if specified
     if let Ok(prefix) = env::var("VAULT_PREFIX") {
         config = config.with_prefix(&prefix);
     }
-    
+
     // Backend-specific configuration
     match backend_type {
         BackendType::AWSSecretsManager => {
@@ -66,62 +66,71 @@ fn build_config() -> vaultmux::Result<Config> {
         }
         _ => {}
     }
-    
+
     Ok(config)
 }
 
 #[tokio::main]
 async fn main() -> vaultmux::Result<()> {
     println!("=== Environment-Based Configuration Example ===\n");
-    
+
     // Show current environment configuration
     println!("Environment configuration:");
-    println!("  VAULT_BACKEND: {}", env::var("VAULT_BACKEND").unwrap_or_else(|_| "mock (default)".to_string()));
-    println!("  VAULT_PREFIX: {}", env::var("VAULT_PREFIX").unwrap_or_else(|_| "(none)".to_string()));
-    
+    println!(
+        "  VAULT_BACKEND: {}",
+        env::var("VAULT_BACKEND").unwrap_or_else(|_| "mock (default)".to_string())
+    );
+    println!(
+        "  VAULT_PREFIX: {}",
+        env::var("VAULT_PREFIX").unwrap_or_else(|_| "(none)".to_string())
+    );
+
     // Build configuration from environment
     let config = build_config()?;
     println!("\nBackend: {:?}", config.backend);
     println!("Prefix: {}", config.prefix);
-    
+
     // Create and initialize backend
     let mut backend = factory::new_backend(config)?;
     println!("\nInitializing backend: {}", backend.name());
     backend.init().await?;
-    
+
     println!("Authenticating...");
     let session = backend.authenticate().await?;
     println!("✓ Authentication successful\n");
-    
+
     // Demonstrate usage
     let test_secret = "app-config";
     let test_value = r#"{"database": "postgres://localhost/myapp", "cache": "redis://localhost"}"#;
-    
+
     println!("Creating example secret '{}'...", test_secret);
-    match backend.create_item(test_secret, test_value, &*session).await {
+    match backend
+        .create_item(test_secret, test_value, &*session)
+        .await
+    {
         Ok(_) => println!("✓ Secret created"),
         Err(vaultmux::VaultmuxError::AlreadyExists(_)) => {
             println!("Secret already exists");
         }
         Err(e) => return Err(e),
     }
-    
+
     // Retrieve and display
     println!("\nRetrieving secret...");
     let retrieved = backend.get_notes(test_secret, &*session).await?;
     println!("✓ Retrieved:\n{}", retrieved);
-    
+
     // Clean up
     println!("\nCleaning up...");
     backend.delete_item(test_secret, &*session).await?;
     println!("✓ Secret deleted");
-    
+
     println!("\n=== Configuration Tips ===");
     println!("• Use environment variables for 12-factor app compliance");
     println!("• Set VAULT_BACKEND to change backends without code changes");
     println!("• Use VAULT_PREFIX to namespace secrets per environment");
     println!("• Backend-specific vars (AWS_REGION, GCP_PROJECT, etc.)");
     println!("\n=== Example Complete ===");
-    
+
     Ok(())
 }

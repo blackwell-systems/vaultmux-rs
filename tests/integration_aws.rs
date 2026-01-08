@@ -10,7 +10,16 @@
 
 #![cfg(feature = "aws")]
 
-use vaultmux::{factory, Backend, Config, BackendType, VaultmuxError};
+use vaultmux::{factory, Backend, BackendType, Config, VaultmuxError};
+
+// Initialize vaultmux library to register backends
+fn init_library() {
+    use std::sync::Once;
+    static INIT: Once = Once::new();
+    INIT.call_once(|| {
+        vaultmux::init();
+    });
+}
 
 fn aws_config() -> Config {
     let endpoint = std::env::var("LOCALSTACK_ENDPOINT")
@@ -23,6 +32,9 @@ fn aws_config() -> Config {
 }
 
 async fn setup_backend() -> (Box<dyn Backend>, std::sync::Arc<dyn vaultmux::Session>) {
+    // Initialize library to register backends
+    init_library();
+    
     std::env::set_var("AWS_ACCESS_KEY_ID", "test");
     std::env::set_var("AWS_SECRET_ACCESS_KEY", "test");
     std::env::set_var("AWS_REGION", "us-east-1");
@@ -62,10 +74,7 @@ async fn test_aws_create_and_get() {
     assert_eq!(retrieved, secret_value);
 
     // Clean up
-    backend
-        .delete_item(secret_name, &*session)
-        .await
-        .ok();
+    backend.delete_item(secret_name, &*session).await.ok();
 }
 
 #[tokio::test]
@@ -98,10 +107,7 @@ async fn test_aws_update() {
     assert_eq!(retrieved, updated_value);
 
     // Clean up
-    backend
-        .delete_item(secret_name, &*session)
-        .await
-        .ok();
+    backend.delete_item(secret_name, &*session).await.ok();
 }
 
 #[tokio::test]
@@ -195,9 +201,7 @@ async fn test_aws_already_exists_error() {
         .expect("Failed to create secret");
 
     // Try to create again - should fail
-    let result = backend
-        .create_item(secret_name, "value2", &*session)
-        .await;
+    let result = backend.create_item(secret_name, "value2", &*session).await;
 
     assert!(matches!(result, Err(VaultmuxError::AlreadyExists(_))));
 

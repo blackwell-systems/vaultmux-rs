@@ -7,7 +7,7 @@
 //! Run with: cargo run --example aws_secrets --features aws
 
 #[cfg(feature = "aws")]
-use vaultmux::{factory, Backend, Config, BackendType};
+use vaultmux::{factory, Backend, BackendType, Config};
 
 #[cfg(feature = "aws")]
 #[tokio::main]

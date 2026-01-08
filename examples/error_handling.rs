@@ -4,17 +4,17 @@
 //!
 //! Run with: cargo run --example error_handling
 
-use vaultmux::{factory, Backend, Config, BackendType, VaultmuxError};
+use vaultmux::{factory, Backend, BackendType, Config, VaultmuxError};
 
 #[tokio::main]
 async fn main() -> vaultmux::Result<()> {
     println!("=== Error Handling Example ===\n");
-    
+
     let config = Config::new(BackendType::Pass);
     let mut backend = factory::new_backend(config)?;
     backend.init().await?;
     let session = backend.authenticate().await?;
-    
+
     // Example 1: NotFound error
     println!("1. Handling NotFound error:");
     match backend.get_notes("nonexistent-key", &*session).await {
@@ -24,12 +24,14 @@ async fn main() -> vaultmux::Result<()> {
         }
         Err(e) => println!("   Unexpected error: {}", e),
     }
-    
+
     // Example 2: AlreadyExists error
     println!("\n2. Handling AlreadyExists error:");
     let secret_name = "existing-key";
-    backend.create_item(secret_name, "value1", &*session).await?;
-    
+    backend
+        .create_item(secret_name, "value1", &*session)
+        .await?;
+
     match backend.create_item(secret_name, "value2", &*session).await {
         Ok(_) => println!("   Created"),
         Err(VaultmuxError::AlreadyExists(name)) => {
@@ -38,29 +40,18 @@ async fn main() -> vaultmux::Result<()> {
         }
         Err(e) => println!("   Unexpected error: {}", e),
     }
-    
+
     // Example 3: Idempotent operations using error handling
     println!("\n3. Idempotent create-or-update:");
-    let result = create_or_update(
-        &mut *backend,
-        "config-key",
-        "config-value",
-        &*session,
-    )
-    .await;
+    let result = create_or_update(&mut *backend, "config-key", "config-value", &*session).await;
     println!("   ✓ {}", result?);
-    
+
     // Example 4: Graceful degradation
     println!("\n4. Graceful degradation with fallback:");
-    let value = get_with_fallback(
-        &*backend,
-        "maybe-missing-key",
-        "default-value",
-        &*session,
-    )
-    .await?;
+    let value =
+        get_with_fallback(&*backend, "maybe-missing-key", "default-value", &*session).await?;
     println!("   ✓ Got value: {}", value);
-    
+
     // Example 5: Error context
     println!("\n5. Error with context:");
     match delete_with_context(&mut *backend, "nonexistent", &*session).await {
@@ -70,18 +61,12 @@ async fn main() -> vaultmux::Result<()> {
             println!("   → Full error chain available for debugging");
         }
     }
-    
+
     // Example 6: Retry logic
     println!("\n6. Retry logic for transient errors:");
-    retry_operation(
-        &*backend,
-        "retry-key",
-        &*session,
-        3,
-    )
-    .await?;
+    retry_operation(&*backend, "retry-key", &*session, 3).await?;
     println!("   ✓ Operation succeeded (with or without retries)");
-    
+
     println!("\n=== Error Handling Best Practices ===");
     println!("• Match on specific error variants for precise handling");
     println!("• Use create_or_update pattern for idempotency");
@@ -89,7 +74,7 @@ async fn main() -> vaultmux::Result<()> {
     println!("• Add context to errors for better debugging");
     println!("• Implement retry logic for transient failures");
     println!("• Log errors but don't expose sensitive details to users");
-    
+
     println!("\n=== Example Complete ===");
     Ok(())
 }
@@ -135,11 +120,7 @@ async fn delete_with_context(
     session: &dyn vaultmux::Session,
 ) -> vaultmux::Result<()> {
     backend.delete_item(name, session).await.map_err(|e| {
-        VaultmuxError::Other(anyhow::anyhow!(
-            "Failed to delete secret '{}': {}",
-            name,
-            e
-        ))
+        VaultmuxError::Other(anyhow::anyhow!("Failed to delete secret '{}': {}", name, e))
     })
 }
 
@@ -151,10 +132,10 @@ async fn retry_operation(
     max_retries: u32,
 ) -> vaultmux::Result<bool> {
     let mut attempts = 0;
-    
+
     loop {
         attempts += 1;
-        
+
         match backend.item_exists(name, session).await {
             Ok(exists) => {
                 if attempts > 1 {

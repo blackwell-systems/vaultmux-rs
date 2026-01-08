@@ -137,18 +137,37 @@ async fn test_my_code() {
 Run tests:
 
 ```bash
+# Unit tests (default)
 cargo test
-```
 
-Run tests with output:
+# All features
+cargo test --all-features
 
-```bash
+# Specific backend
+cargo test --features aws
+
+# With output
 cargo test -- --nocapture
 ```
 
-## Architecture
+### Integration Tests
 
-See [`RUST_PORT_PLAN.md`](RUST_PORT_PLAN.md) for the complete architectural design and implementation plan.
+AWS integration tests use LocalStack for realistic testing:
+
+```bash
+# Start LocalStack
+docker run -d -p 4566:4566 localstack/localstack
+
+# Run AWS integration tests
+cargo test --test integration_aws --features aws -- --ignored
+
+# Or use the helper script
+./scripts/test-aws-localstack.sh
+```
+
+**Note:** Integration tests are marked with `#[ignore]` and only run when explicitly requested or in CI.
+
+## Architecture
 
 **Key Design Principles:**
 1. **Async by default** - All I/O operations use `tokio`

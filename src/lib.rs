@@ -79,6 +79,7 @@ pub mod error;
 pub mod config;
 pub mod factory;
 pub mod validation;
+pub mod cli;
 pub mod backends;
 
 pub use backend::Backend;
@@ -120,14 +121,33 @@ mod tests {
         init();
     }
 
+    #[cfg(feature = "mock")]
     #[tokio::test]
-    async fn test_mock_backend_roundtrip() {
+    async fn test_mock_backend_creation() {
         init();
 
-        let config = Config::new(BackendType::Pass);
-        
-        let backend = factory::new_backend(config);
-        
-        assert!(backend.is_err());
+        // Mock backend should be registered
+        let config = Config {
+            backend: BackendType::Pass,
+            store_path: None,
+            prefix: "test".to_string(),
+            session_file: None,
+            session_ttl: std::time::Duration::from_secs(1800),
+            options: std::collections::HashMap::new(),
+        };
+
+        // Pass backend should be available now with the pass feature
+        #[cfg(feature = "pass")]
+        {
+            let backend = factory::new_backend(config);
+            assert!(backend.is_ok());
+        }
+
+        // Without pass feature, it should error
+        #[cfg(not(feature = "pass"))]
+        {
+            let backend = factory::new_backend(config);
+            assert!(backend.is_err());
+        }
     }
 }

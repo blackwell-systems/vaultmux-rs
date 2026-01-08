@@ -3,15 +3,15 @@
 #[cfg(feature = "mock")]
 pub mod mock;
 
+#[cfg(feature = "pass")]
+pub mod pass;
+
 // TODO: Add other backends as they're implemented
 // #[cfg(feature = "bitwarden")]
 // pub mod bitwarden;
 //
 // #[cfg(feature = "onepassword")]
 // pub mod onepassword;
-//
-// #[cfg(feature = "pass")]
-// pub mod pass;
 //
 // #[cfg(all(feature = "wincred", target_os = "windows"))]
 // pub mod wincred;
@@ -32,6 +32,9 @@ pub mod mock;
 pub fn register_all() {
     #[cfg(feature = "mock")]
     mock::register();
+
+    #[cfg(feature = "pass")]
+    pass::register();
 
     // TODO: Register other backends as they're implemented
 }

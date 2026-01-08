@@ -70,17 +70,17 @@ impl Backend for AWSBackend {
         }
 
         let sdk_config = config_loader.load().await;
-        
+
         // Create client with additional LocalStack-specific configuration if needed
         let client_config = aws_sdk_secretsmanager::config::Builder::from(&sdk_config);
-        
+
         // If using custom endpoint (LocalStack), apply it to the client config as well
         let client_config = if let Some(ref endpoint) = self.endpoint {
             client_config.endpoint_url(endpoint)
         } else {
             client_config
         };
-        
+
         self.client = Some(Client::from_conf(client_config.build()));
 
         Ok(())

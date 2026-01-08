@@ -34,7 +34,7 @@ fn aws_config() -> Config {
 async fn setup_backend() -> (Box<dyn Backend>, std::sync::Arc<dyn vaultmux::Session>) {
     // Initialize library to register backends
     init_library();
-    
+
     std::env::set_var("AWS_ACCESS_KEY_ID", "test");
     std::env::set_var("AWS_SECRET_ACCESS_KEY", "test");
     std::env::set_var("AWS_REGION", "us-east-1");

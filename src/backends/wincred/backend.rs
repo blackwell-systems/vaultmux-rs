@@ -19,17 +19,13 @@ pub struct WincredBackend {
 impl WincredBackend {
     /// Creates a new Windows Credential Manager backend from configuration.
     pub fn new(config: Config) -> Self {
-        let prefix = config
-            .options
-            .get("prefix")
-            .cloned()
-            .unwrap_or_else(|| {
-                if config.prefix.is_empty() {
-                    "vaultmux".to_string()
-                } else {
-                    config.prefix.clone()
-                }
-            });
+        let prefix = config.options.get("prefix").cloned().unwrap_or_else(|| {
+            if config.prefix.is_empty() {
+                "vaultmux".to_string()
+            } else {
+                config.prefix.clone()
+            }
+        });
 
         Self { prefix }
     }
@@ -54,7 +50,9 @@ impl WincredBackend {
             .stderr(Stdio::piped())
             .output()
             .await
-            .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to execute PowerShell: {}", e)))?;
+            .map_err(|e| {
+                VaultmuxError::Other(anyhow::anyhow!("Failed to execute PowerShell: {}", e))
+            })?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -198,8 +196,9 @@ $creds | ForEach-Object {{
         }
 
         let items: Vec<Item> = if output.trim_start().starts_with('[') {
-            let list: Vec<CredentialListItem> = serde_json::from_str(&output)
-                .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to parse credential list: {}", e)))?;
+            let list: Vec<CredentialListItem> = serde_json::from_str(&output).map_err(|e| {
+                VaultmuxError::Other(anyhow::anyhow!("Failed to parse credential list: {}", e))
+            })?;
             list.into_iter()
                 .map(|cred| Item {
                     id: cred.target,
@@ -213,8 +212,9 @@ $creds | ForEach-Object {{
                 })
                 .collect()
         } else {
-            let single: CredentialListItem = serde_json::from_str(&output)
-                .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to parse credential: {}", e)))?;
+            let single: CredentialListItem = serde_json::from_str(&output).map_err(|e| {
+                VaultmuxError::Other(anyhow::anyhow!("Failed to parse credential: {}", e))
+            })?;
             vec![Item {
                 id: single.target,
                 name: single.name,
@@ -230,7 +230,12 @@ $creds | ForEach-Object {{
         Ok(items)
     }
 
-    async fn create_item(&mut self, name: &str, content: &str, _session: &dyn Session) -> Result<()> {
+    async fn create_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        _session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         if self.item_exists(name, _session).await? {
@@ -254,7 +259,12 @@ New-StoredCredential -Target '{}' -Credential $cred -Type Generic -Persist Local
         Ok(())
     }
 
-    async fn update_item(&mut self, name: &str, content: &str, _session: &dyn Session) -> Result<()> {
+    async fn update_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        _session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         if !self.item_exists(name, _session).await? {

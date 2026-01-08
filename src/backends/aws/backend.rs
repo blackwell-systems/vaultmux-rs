@@ -124,7 +124,9 @@ impl Backend for AWSBackend {
             .secret_id(&secret_name)
             .send()
             .await
-            .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to get secret value: {}", e)))?;
+            .map_err(|e| {
+                VaultmuxError::Other(anyhow::anyhow!("Failed to get secret value: {}", e))
+            })?;
 
         let secret_string = value_response
             .secret_string()
@@ -137,12 +139,12 @@ impl Backend for AWSBackend {
             notes: Some(secret_string.to_string()),
             fields: None,
             location: None,
-            created: response.created_date().and_then(|d| {
-                chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos() as u32)
-            }),
-            modified: response.last_changed_date().and_then(|d| {
-                chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos() as u32)
-            }),
+            created: response
+                .created_date()
+                .and_then(|d| chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())),
+            modified: response
+                .last_changed_date()
+                .and_then(|d| chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())),
         })
     }
 
@@ -162,7 +164,12 @@ impl Backend for AWSBackend {
 
         let secret_name = self.secret_name(name);
 
-        match client.describe_secret().secret_id(&secret_name).send().await {
+        match client
+            .describe_secret()
+            .secret_id(&secret_name)
+            .send()
+            .await
+        {
             Ok(_) => Ok(true),
             Err(e) if e.to_string().contains("ResourceNotFoundException") => Ok(false),
             Err(e) => Err(VaultmuxError::Other(anyhow::anyhow!("AWS error: {}", e))),
@@ -180,19 +187,20 @@ impl Backend for AWSBackend {
 
         loop {
             let mut request = client.list_secrets();
-            
+
             if let Some(token) = next_token {
                 request = request.next_token(token);
             }
 
-            let response = request
-                .send()
-                .await
-                .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to list secrets: {}", e)))?;
+            let response = request.send().await.map_err(|e| {
+                VaultmuxError::Other(anyhow::anyhow!("Failed to list secrets: {}", e))
+            })?;
 
             for secret in response.secret_list() {
-                let Some(full_name) = secret.name() else { continue };
-                
+                let Some(full_name) = secret.name() else {
+                    continue;
+                };
+
                 // Filter by prefix
                 if let Some(name) = full_name.strip_prefix(&self.prefix) {
                     items.push(Item {
@@ -202,11 +210,11 @@ impl Backend for AWSBackend {
                         notes: None, // Don't fetch values for list
                         fields: None,
                         location: None,
-                        created: secret.created_date().and_then(|d| {
-                            chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos() as u32)
-                        }),
+                        created: secret
+                            .created_date()
+                            .and_then(|d| chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())),
                         modified: secret.last_changed_date().and_then(|d| {
-                            chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos() as u32)
+                            chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())
                         }),
                     });
                 }
@@ -222,7 +230,12 @@ impl Backend for AWSBackend {
         Ok(items)
     }
 
-    async fn create_item(&mut self, name: &str, content: &str, _session: &dyn Session) -> Result<()> {
+    async fn create_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        _session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         let client = self
@@ -248,7 +261,12 @@ impl Backend for AWSBackend {
         Ok(())
     }
 
-    async fn update_item(&mut self, name: &str, content: &str, _session: &dyn Session) -> Result<()> {
+    async fn update_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        _session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         let client = self
@@ -339,8 +357,8 @@ mod tests {
 
     #[test]
     fn test_secret_name() {
-        let config = Config::new(crate::BackendType::AWSSecretsManager)
-            .with_option("prefix", "myapp/");
+        let config =
+            Config::new(crate::BackendType::AWSSecretsManager).with_option("prefix", "myapp/");
         let backend = AWSBackend::new(config);
 
         assert_eq!(backend.secret_name("api-key"), "myapp/api-key");
@@ -348,8 +366,7 @@ mod tests {
 
     #[test]
     fn test_secret_name_no_prefix() {
-        let config = Config::new(crate::BackendType::AWSSecretsManager)
-            .with_option("prefix", "");
+        let config = Config::new(crate::BackendType::AWSSecretsManager).with_option("prefix", "");
         let backend = AWSBackend::new(config);
 
         assert_eq!(backend.secret_name("api-key"), "api-key");

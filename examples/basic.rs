@@ -11,7 +11,7 @@ async fn main() -> vaultmux::Result<()> {
     // Note: We can't use BackendType::Pass here because no backends
     // are actually registered yet in this minimal implementation
     println!("Creating mock backend...");
-    
+
     // For now, demonstrate the API pattern
     let config = Config::default();
     println!("Config: backend = {}", config.backend);

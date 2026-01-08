@@ -54,7 +54,10 @@ pub fn validate_item_name(name: &str) -> Result<()> {
         ));
     }
 
-    if name.chars().any(|c| c.is_control() && c != '\n' && c != '\t') {
+    if name
+        .chars()
+        .any(|c| c.is_control() && c != '\n' && c != '\t')
+    {
         return Err(VaultmuxError::InvalidItemName(
             "name contains control characters".to_string(),
         ));
@@ -144,11 +147,7 @@ mod tests {
 
         for name in dangerous_names {
             let result = validate_item_name(name);
-            assert!(
-                result.is_err(),
-                "Expected '{}' to fail validation",
-                name
-            );
+            assert!(result.is_err(), "Expected '{}' to fail validation", name);
             assert!(result
                 .unwrap_err()
                 .to_string()

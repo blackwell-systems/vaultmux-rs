@@ -49,7 +49,5 @@ pub use session::BitwardenSession;
 
 /// Registers the Bitwarden backend with the factory.
 pub fn register() {
-    crate::factory::register_backend("bitwarden", |cfg| {
-        Ok(Box::new(BitwardenBackend::new(cfg)))
-    });
+    crate::factory::register_backend("bitwarden", |cfg| Ok(Box::new(BitwardenBackend::new(cfg))));
 }

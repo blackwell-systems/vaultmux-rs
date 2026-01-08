@@ -25,11 +25,7 @@ use tokio::process::Command;
 /// - Command not found
 /// - Exit code is non-zero
 /// - Output is not valid UTF-8
-pub async fn run_command(
-    program: &str,
-    args: &[&str],
-    env: &[(&str, &str)],
-) -> Result<String> {
+pub async fn run_command(program: &str, args: &[&str], env: &[(&str, &str)]) -> Result<String> {
     let mut cmd = Command::new(program);
     cmd.args(args);
     cmd.stdout(Stdio::piped());

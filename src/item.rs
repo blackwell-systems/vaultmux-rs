@@ -133,12 +133,19 @@ mod tests {
 
     #[test]
     fn test_new_login() {
-        let item = Item::new_login("github", "user@example.com".to_string(), "password123".to_string());
+        let item = Item::new_login(
+            "github",
+            "user@example.com".to_string(),
+            "password123".to_string(),
+        );
         assert_eq!(item.name, "github");
         assert_eq!(item.item_type, ItemType::Login);
-        
+
         let fields = item.fields.unwrap();
-        assert_eq!(fields.get("username"), Some(&"user@example.com".to_string()));
+        assert_eq!(
+            fields.get("username"),
+            Some(&"user@example.com".to_string())
+        );
         assert_eq!(fields.get("password"), Some(&"password123".to_string()));
     }
 

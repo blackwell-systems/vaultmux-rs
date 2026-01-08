@@ -45,7 +45,5 @@ pub use session::PassSession;
 
 /// Registers the pass backend with the factory.
 pub fn register() {
-    crate::factory::register_backend("pass", |cfg| {
-        Ok(Box::new(PassBackend::new(cfg)))
-    });
+    crate::factory::register_backend("pass", |cfg| Ok(Box::new(PassBackend::new(cfg))));
 }

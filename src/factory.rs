@@ -9,7 +9,8 @@ use std::sync::RwLock;
 pub type BackendFactory = fn(Config) -> Result<Box<dyn Backend>>;
 
 lazy_static! {
-    static ref BACKEND_REGISTRY: RwLock<HashMap<String, BackendFactory>> = RwLock::new(HashMap::new());
+    static ref BACKEND_REGISTRY: RwLock<HashMap<String, BackendFactory>> =
+        RwLock::new(HashMap::new());
 }
 
 /// Registers a backend factory function.

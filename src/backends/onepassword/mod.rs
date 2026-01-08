@@ -37,7 +37,5 @@ pub fn register() {
     factory::register_backend("onepassword", |config| {
         Ok(Box::new(OnePasswordBackend::new(config)))
     });
-    factory::register_backend("op", |config| {
-        Ok(Box::new(OnePasswordBackend::new(config)))
-    });
+    factory::register_backend("op", |config| Ok(Box::new(OnePasswordBackend::new(config))));
 }

@@ -24,9 +24,7 @@ impl GCPBackend {
             .options
             .get("project_id")
             .cloned()
-            .unwrap_or_else(|| {
-                std::env::var("GCP_PROJECT").unwrap_or_else(|_| "".to_string())
-            });
+            .unwrap_or_else(|| std::env::var("GCP_PROJECT").unwrap_or_else(|_| "".to_string()));
 
         let prefix = config
             .options
@@ -62,10 +60,10 @@ impl GCPBackend {
     }
 
     /// Gets the hub (API client).
-    fn hub(&self) -> Result<&SecretManager<hyper_rustls::HttpsConnector<hyper::client::HttpConnector>>> {
-        self.hub
-            .as_ref()
-            .ok_or(VaultmuxError::NotAuthenticated)
+    fn hub(
+        &self,
+    ) -> Result<&SecretManager<hyper_rustls::HttpsConnector<hyper::client::HttpConnector>>> {
+        self.hub.as_ref().ok_or(VaultmuxError::NotAuthenticated)
     }
 }
 
@@ -95,18 +93,18 @@ impl Backend for GCPBackend {
         // Get application default credentials
         let opts = oauth2::ApplicationDefaultCredentialsFlowOpts::default();
         let auth_builder = oauth2::ApplicationDefaultCredentialsAuthenticator::builder(opts).await;
-        
+
         let auth = match auth_builder {
             oauth2::authenticator::ApplicationDefaultCredentialsTypes::InstanceMetadata(auth) => {
                 auth.build().await.map_err(|e| {
                     VaultmuxError::Other(anyhow::anyhow!("Failed to build GCP auth: {}", e))
                 })?
-            },
+            }
             oauth2::authenticator::ApplicationDefaultCredentialsTypes::ServiceAccount(auth) => {
                 auth.build().await.map_err(|e| {
                     VaultmuxError::Other(anyhow::anyhow!("Failed to build GCP auth: {}", e))
                 })?
-            },
+            }
         };
 
         self.hub = Some(SecretManager::new(client, auth));
@@ -159,7 +157,9 @@ impl Backend for GCPBackend {
             .secrets_versions_access(&version_path)
             .doit()
             .await
-            .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to access secret value: {}", e)))?;
+            .map_err(|e| {
+                VaultmuxError::Other(anyhow::anyhow!("Failed to access secret value: {}", e))
+            })?;
 
         let payload = version_access
             .payload
@@ -252,7 +252,12 @@ impl Backend for GCPBackend {
         Ok(items)
     }
 
-    async fn create_item(&mut self, name: &str, content: &str, _session: &dyn Session) -> Result<()> {
+    async fn create_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        _session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         if self.item_exists(name, _session).await? {
@@ -281,8 +286,10 @@ impl Backend for GCPBackend {
             .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to create secret: {}", e)))?;
 
         // Add the first version with content
-        let secret_path = created_secret.name.unwrap_or_else(|| self.secret_path(name));
-        
+        let secret_path = created_secret
+            .name
+            .unwrap_or_else(|| self.secret_path(name));
+
         let version_request = AddSecretVersionRequest {
             payload: Some(google_secretmanager1::api::SecretPayload {
                 data: Some(content.as_bytes().to_vec()),
@@ -294,12 +301,19 @@ impl Backend for GCPBackend {
             .secrets_add_version(version_request, &secret_path)
             .doit()
             .await
-            .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to add secret version: {}", e)))?;
+            .map_err(|e| {
+                VaultmuxError::Other(anyhow::anyhow!("Failed to add secret version: {}", e))
+            })?;
 
         Ok(())
     }
 
-    async fn update_item(&mut self, name: &str, content: &str, _session: &dyn Session) -> Result<()> {
+    async fn update_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        _session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         if !self.item_exists(name, _session).await? {
@@ -349,7 +363,8 @@ impl Backend for GCPBackend {
 
     async fn list_locations(&self, _session: &dyn Session) -> Result<Vec<String>> {
         Err(VaultmuxError::NotSupported(
-            "GCP Secret Manager does not support locations (secrets are project-scoped)".to_string(),
+            "GCP Secret Manager does not support locations (secrets are project-scoped)"
+                .to_string(),
         ))
     }
 

@@ -36,10 +36,6 @@ use crate::factory;
 
 /// Registers the GCP Secret Manager backend with the factory.
 pub fn register() {
-    factory::register_backend("gcpsecrets", |config| {
-        Ok(Box::new(GCPBackend::new(config)))
-    });
-    factory::register_backend("gcp", |config| {
-        Ok(Box::new(GCPBackend::new(config)))
-    });
+    factory::register_backend("gcpsecrets", |config| Ok(Box::new(GCPBackend::new(config))));
+    factory::register_backend("gcp", |config| Ok(Box::new(GCPBackend::new(config))));
 }

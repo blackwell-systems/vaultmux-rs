@@ -72,13 +72,23 @@ impl Backend for WincredBackend {
         )))
     }
 
-    async fn create_item(&mut self, _name: &str, _content: &str, _session: &dyn Session) -> Result<()> {
+    async fn create_item(
+        &mut self,
+        _name: &str,
+        _content: &str,
+        _session: &dyn Session,
+    ) -> Result<()> {
         Err(VaultmuxError::Other(anyhow::anyhow!(
             "Windows Credential Manager is only available on Windows"
         )))
     }
 
-    async fn update_item(&mut self, _name: &str, _content: &str, _session: &dyn Session) -> Result<()> {
+    async fn update_item(
+        &mut self,
+        _name: &str,
+        _content: &str,
+        _session: &dyn Session,
+    ) -> Result<()> {
         Err(VaultmuxError::Other(anyhow::anyhow!(
             "Windows Credential Manager is only available on Windows"
         )))

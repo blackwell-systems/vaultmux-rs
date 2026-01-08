@@ -21,13 +21,9 @@ pub struct AzureBackend {
 impl AzureBackend {
     /// Creates a new Azure Key Vault backend from configuration.
     pub fn new(config: Config) -> Self {
-        let vault_url = config
-            .options
-            .get("vault_url")
-            .cloned()
-            .unwrap_or_else(|| {
-                std::env::var("AZURE_KEYVAULT_URL").unwrap_or_else(|_| "".to_string())
-            });
+        let vault_url = config.options.get("vault_url").cloned().unwrap_or_else(|| {
+            std::env::var("AZURE_KEYVAULT_URL").unwrap_or_else(|_| "".to_string())
+        });
 
         let prefix = config
             .options
@@ -53,9 +49,7 @@ impl AzureBackend {
 
     /// Gets the client.
     fn client(&self) -> Result<&SecretClient> {
-        self.client
-            .as_ref()
-            .ok_or(VaultmuxError::NotAuthenticated)
+        self.client.as_ref().ok_or(VaultmuxError::NotAuthenticated)
     }
 }
 
@@ -72,17 +66,15 @@ impl Backend for AzureBackend {
             )));
         }
 
-        // Create credential using DefaultAzureCredential  
-        let credential = Arc::new(
-            DefaultAzureCredential::create(Default::default())
-                .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to create Azure credentials: {}", e)))?
-        );
+        // Create credential using DefaultAzureCredential
+        let credential = Arc::new(DefaultAzureCredential::create(Default::default()).map_err(
+            |e| VaultmuxError::Other(anyhow::anyhow!("Failed to create Azure credentials: {}", e)),
+        )?);
 
         // Create Secret client
-        self.client = Some(
-            SecretClient::new(&self.vault_url, credential)
-                .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to create Secret client: {}", e)))?
-        );
+        self.client = Some(SecretClient::new(&self.vault_url, credential).map_err(|e| {
+            VaultmuxError::Other(anyhow::anyhow!("Failed to create Secret client: {}", e))
+        })?);
 
         Ok(())
     }
@@ -113,28 +105,20 @@ impl Backend for AzureBackend {
         let secret_name = self.secret_name(name);
 
         // Get secret
-        let secret = client
-            .get(secret_name)
-            .into_future()
-            .await
-            .map_err(|e| {
-                if e.to_string().contains("SecretNotFound") || e.to_string().contains("404") {
-                    VaultmuxError::NotFound(name.to_string())
-                } else {
-                    VaultmuxError::Other(anyhow::anyhow!("Azure error: {}", e))
-                }
-            })?;
+        let secret = client.get(secret_name).into_future().await.map_err(|e| {
+            if e.to_string().contains("SecretNotFound") || e.to_string().contains("404") {
+                VaultmuxError::NotFound(name.to_string())
+            } else {
+                VaultmuxError::Other(anyhow::anyhow!("Azure error: {}", e))
+            }
+        })?;
 
         // Parse timestamps (Azure uses time::OffsetDateTime)
-        let created = chrono::DateTime::from_timestamp(
-            secret.attributes.created_on.unix_timestamp(),
-            0
-        );
+        let created =
+            chrono::DateTime::from_timestamp(secret.attributes.created_on.unix_timestamp(), 0);
 
-        let modified = chrono::DateTime::from_timestamp(
-            secret.attributes.updated_on.unix_timestamp(),
-            0
-        );
+        let modified =
+            chrono::DateTime::from_timestamp(secret.attributes.updated_on.unix_timestamp(), 0);
 
         Ok(Item {
             id: secret.id,
@@ -162,7 +146,9 @@ impl Backend for AzureBackend {
 
         match client.get(secret_name).into_future().await {
             Ok(_) => Ok(true),
-            Err(e) if e.to_string().contains("SecretNotFound") || e.to_string().contains("404") => Ok(false),
+            Err(e) if e.to_string().contains("SecretNotFound") || e.to_string().contains("404") => {
+                Ok(false)
+            }
             Err(e) => Err(VaultmuxError::Other(anyhow::anyhow!("Azure error: {}", e))),
         }
     }
@@ -175,7 +161,7 @@ impl Backend for AzureBackend {
         // List all secrets
         let mut secrets_stream = client.list_secrets().into_stream();
         let mut secrets = Vec::new();
-        
+
         while let Some(result) = secrets_stream.next().await {
             secrets.push(result);
         }
@@ -215,7 +201,12 @@ impl Backend for AzureBackend {
         Ok(items)
     }
 
-    async fn create_item(&mut self, name: &str, content: &str, _session: &dyn Session) -> Result<()> {
+    async fn create_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        _session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         if self.item_exists(name, _session).await? {
@@ -234,7 +225,12 @@ impl Backend for AzureBackend {
         Ok(())
     }
 
-    async fn update_item(&mut self, name: &str, content: &str, _session: &dyn Session) -> Result<()> {
+    async fn update_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        _session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         if !self.item_exists(name, _session).await? {

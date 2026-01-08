@@ -39,7 +39,5 @@ pub fn register() {
     factory::register_backend("azurekeyvault", |config| {
         Ok(Box::new(AzureBackend::new(config)))
     });
-    factory::register_backend("azure", |config| {
-        Ok(Box::new(AzureBackend::new(config)))
-    });
+    factory::register_backend("azure", |config| Ok(Box::new(AzureBackend::new(config))));
 }

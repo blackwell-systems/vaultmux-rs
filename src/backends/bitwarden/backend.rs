@@ -47,8 +47,9 @@ impl BitwardenBackend {
     /// Checks vault lock status.
     async fn check_lock_status(&self) -> Result<bool> {
         let output = run_command("bw", &["status"], &[]).await?;
-        let status: BitwardenStatus = serde_json::from_str(&output)
-            .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to parse bw status: {}", e)))?;
+        let status: BitwardenStatus = serde_json::from_str(&output).map_err(|e| {
+            VaultmuxError::Other(anyhow::anyhow!("Failed to parse bw status: {}", e))
+        })?;
 
         Ok(status.status == "unlocked")
     }
@@ -76,6 +77,7 @@ struct BitwardenItem {
 
 /// Bitwarden folder.
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct BitwardenFolder {
     id: String,
     name: String,
@@ -91,14 +93,16 @@ impl Backend for BitwardenBackend {
         // Check if bw command exists
         if !check_command_exists("bw").await? {
             return Err(VaultmuxError::BackendNotInstalled(
-                "bw command not found - install Bitwarden CLI from https://bitwarden.com/download/".to_string(),
+                "bw command not found - install Bitwarden CLI from https://bitwarden.com/download/"
+                    .to_string(),
             ));
         }
 
         // Check if logged in
         let output = run_command("bw", &["status"], &[]).await?;
-        let status: BitwardenStatus = serde_json::from_str(&output)
-            .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to parse bw status: {}", e)))?;
+        let status: BitwardenStatus = serde_json::from_str(&output).map_err(|e| {
+            VaultmuxError::Other(anyhow::anyhow!("Failed to parse bw status: {}", e))
+        })?;
 
         if status.status == "unauthenticated" {
             return Err(VaultmuxError::NotAuthenticated);
@@ -137,10 +141,8 @@ impl Backend for BitwardenBackend {
         if let Some(ref cache) = self.session_cache {
             if let Ok(Some(cached)) = cache.load().await {
                 if Utc::now() < cached.expires {
-                    let session = BitwardenSession::from_token_and_expiry(
-                        cached.token,
-                        cached.expires,
-                    );
+                    let session =
+                        BitwardenSession::from_token_and_expiry(cached.token, cached.expires);
                     return Ok(Arc::new(session));
                 }
             }
@@ -158,13 +160,15 @@ impl Backend for BitwardenBackend {
 
         // Vault is locked - unlock it
         // Note: This will prompt for password interactively
-        let output = run_command("bw", &["unlock", "--raw"], &[]).await.map_err(|e| {
-            if e.to_string().contains("Invalid master password") {
-                VaultmuxError::NotAuthenticated
-            } else {
-                e
-            }
-        })?;
+        let output = run_command("bw", &["unlock", "--raw"], &[])
+            .await
+            .map_err(|e| {
+                if e.to_string().contains("Invalid master password") {
+                    VaultmuxError::NotAuthenticated
+                } else {
+                    e
+                }
+            })?;
 
         let token = output.trim().to_string();
 
@@ -194,7 +198,7 @@ impl Backend for BitwardenBackend {
         validate_item_name(name)?;
 
         let full_name = self.prefixed_name(name);
-        
+
         // Get item by name
         let output = run_command(
             "bw",
@@ -236,7 +240,8 @@ impl Backend for BitwardenBackend {
 
     async fn get_notes(&self, name: &str, session: &dyn Session) -> Result<String> {
         let item = self.get_item(name, session).await?;
-        item.notes.ok_or_else(|| VaultmuxError::NotFound(format!("{} has no notes", name)))
+        item.notes
+            .ok_or_else(|| VaultmuxError::NotFound(format!("{} has no notes", name)))
     }
 
     async fn item_exists(&self, name: &str, session: &dyn Session) -> Result<bool> {
@@ -251,12 +256,8 @@ impl Backend for BitwardenBackend {
 
     async fn list_items(&self, session: &dyn Session) -> Result<Vec<Item>> {
         // List all items
-        let output = run_command(
-            "bw",
-            &["list", "items"],
-            &[("BW_SESSION", session.token())],
-        )
-        .await?;
+        let output =
+            run_command("bw", &["list", "items"], &[("BW_SESSION", session.token())]).await?;
 
         let bw_items: Vec<BitwardenItem> = serde_json::from_str(&output)
             .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to parse items: {}", e)))?;
@@ -284,7 +285,9 @@ impl Backend for BitwardenBackend {
                 let name = if self.prefix.is_empty() {
                     bw_item.name.clone()
                 } else {
-                    bw_item.name.strip_prefix(&format!("{}/", self.prefix))
+                    bw_item
+                        .name
+                        .strip_prefix(&format!("{}/", self.prefix))
                         .unwrap_or(&bw_item.name)
                         .to_string()
                 };
@@ -305,7 +308,12 @@ impl Backend for BitwardenBackend {
         Ok(items)
     }
 
-    async fn create_item(&mut self, name: &str, content: &str, session: &dyn Session) -> Result<()> {
+    async fn create_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         // Check if exists
@@ -339,7 +347,12 @@ impl Backend for BitwardenBackend {
         Ok(())
     }
 
-    async fn update_item(&mut self, name: &str, content: &str, session: &dyn Session) -> Result<()> {
+    async fn update_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         // Get existing item
@@ -445,7 +458,7 @@ impl Backend for BitwardenBackend {
 
         // Get all items and filter by folder
         let all_items = self.list_items(session).await?;
-        
+
         // This is simplified - in reality we'd need to resolve folder name to ID
         Ok(all_items
             .into_iter()

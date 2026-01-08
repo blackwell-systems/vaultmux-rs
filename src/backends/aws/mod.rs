@@ -46,7 +46,5 @@ pub use session::AWSSession;
 
 /// Registers the AWS Secrets Manager backend with the factory.
 pub fn register() {
-    crate::factory::register_backend("awssecrets", |cfg| {
-        Ok(Box::new(AWSBackend::new(cfg)))
-    });
+    crate::factory::register_backend("awssecrets", |cfg| Ok(Box::new(AWSBackend::new(cfg))));
 }

@@ -73,20 +73,20 @@
 //! ```
 
 pub mod backend;
-pub mod session;
-pub mod item;
-pub mod error;
-pub mod config;
-pub mod factory;
-pub mod validation;
-pub mod cli;
 pub mod backends;
+pub mod cli;
+pub mod config;
+pub mod error;
+pub mod factory;
+pub mod item;
+pub mod session;
+pub mod validation;
 
 pub use backend::Backend;
-pub use session::Session;
-pub use item::{Item, ItemType};
+pub use config::{BackendType, Config};
 pub use error::{Result, VaultmuxError};
-pub use config::{Config, BackendType};
+pub use item::{Item, ItemType};
+pub use session::Session;
 
 use lazy_static::lazy_static;
 use std::sync::Once;

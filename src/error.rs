@@ -131,7 +131,7 @@ mod tests {
     fn test_backend_operation_error() {
         let inner = VaultmuxError::NotFound("api-key".to_string());
         let err = VaultmuxError::backend_op("bitwarden", "get", "api-key", inner);
-        
+
         let error_string = err.to_string();
         assert!(error_string.contains("bitwarden"));
         assert!(error_string.contains("get"));

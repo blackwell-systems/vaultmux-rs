@@ -2,12 +2,12 @@
 
 use crate::backends::onepassword::OnePasswordSession;
 use crate::cli::{check_command_exists, run_command, StatusCache};
-use std::time::Duration;
 use crate::validation::validate_item_name;
 use crate::{Backend, Config, Item, ItemType, Result, Session, VaultmuxError};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::Mutex;
 
 /// 1Password backend.
@@ -24,7 +24,7 @@ impl OnePasswordBackend {
     /// Creates a new 1Password backend from configuration.
     pub fn new(config: Config) -> Self {
         let account = config.options.get("account").cloned();
-        
+
         let vault = config
             .options
             .get("vault")
@@ -148,7 +148,7 @@ impl Backend for OnePasswordBackend {
 
     async fn is_authenticated(&self) -> bool {
         let mut cache = self.status_cache.lock().await;
-        
+
         if let Some(status) = cache.get() {
             return status;
         }
@@ -156,7 +156,7 @@ impl Backend for OnePasswordBackend {
         // Check if we can run a simple command
         let result = run_command("op", &["vault", "list", "--format=json"], &[]).await;
         let authenticated = result.is_ok();
-        
+
         cache.set(authenticated);
         authenticated
     }
@@ -168,9 +168,10 @@ impl Backend for OnePasswordBackend {
         } else {
             // Get default account
             let output = run_command("op", &["account", "list", "--format=json"], &[]).await?;
-            let accounts: Vec<OpAccount> = serde_json::from_str(&output)
-                .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to parse accounts: {}", e)))?;
-            
+            let accounts: Vec<OpAccount> = serde_json::from_str(&output).map_err(|e| {
+                VaultmuxError::Other(anyhow::anyhow!("Failed to parse accounts: {}", e))
+            })?;
+
             accounts
                 .first()
                 .ok_or_else(|| VaultmuxError::NotAuthenticated)?
@@ -179,17 +180,15 @@ impl Backend for OnePasswordBackend {
         };
 
         // Sign in to get session token
-        let token_output = run_command(
-            "op",
-            &["signin", "--account", &account, "--raw"],
-            &[]
-        ).await.map_err(|e| {
-            if e.to_string().contains("authentication required") {
-                VaultmuxError::NotAuthenticated
-            } else {
-                e
-            }
-        })?;
+        let token_output = run_command("op", &["signin", "--account", &account, "--raw"], &[])
+            .await
+            .map_err(|e| {
+                if e.to_string().contains("authentication required") {
+                    VaultmuxError::NotAuthenticated
+                } else {
+                    e
+                }
+            })?;
 
         let token = token_output.trim().to_string();
         Ok(Arc::new(OnePasswordSession::new(token, account)))
@@ -205,7 +204,7 @@ impl Backend for OnePasswordBackend {
 
         let item_name = self.item_name(name);
         let account = self.get_account(session);
-        
+
         let env = if !account.is_empty() {
             vec![("OP_SESSION", session.token())]
         } else {
@@ -214,9 +213,18 @@ impl Backend for OnePasswordBackend {
 
         let output = run_command(
             "op",
-            &["item", "get", &item_name, "--vault", &self.vault, "--format=json"],
-            &env
-        ).await.map_err(|e| {
+            &[
+                "item",
+                "get",
+                &item_name,
+                "--vault",
+                &self.vault,
+                "--format=json",
+            ],
+            &env,
+        )
+        .await
+        .map_err(|e| {
             if e.to_string().contains("isn't an item") {
                 VaultmuxError::NotFound(name.to_string())
             } else {
@@ -229,7 +237,8 @@ impl Backend for OnePasswordBackend {
 
         // Extract notes from notesPlain field
         let notes = op_item.fields.as_ref().and_then(|fields| {
-            fields.iter()
+            fields
+                .iter()
                 .find(|f| f.label == "notesPlain" || f.id == "notesPlain")
                 .and_then(|f| f.value.clone())
         });
@@ -270,7 +279,7 @@ impl Backend for OnePasswordBackend {
 
         let item_name = self.item_name(name);
         let account = self.get_account(session);
-        
+
         let env = if !account.is_empty() {
             vec![("OP_SESSION", session.token())]
         } else {
@@ -279,16 +288,24 @@ impl Backend for OnePasswordBackend {
 
         let result = run_command(
             "op",
-            &["item", "get", &item_name, "--vault", &self.vault, "--format=json"],
-            &env
-        ).await;
+            &[
+                "item",
+                "get",
+                &item_name,
+                "--vault",
+                &self.vault,
+                "--format=json",
+            ],
+            &env,
+        )
+        .await;
 
         Ok(result.is_ok())
     }
 
     async fn list_items(&self, session: &dyn Session) -> Result<Vec<Item>> {
         let account = self.get_account(session);
-        
+
         let env = if !account.is_empty() {
             vec![("OP_SESSION", session.token())]
         } else {
@@ -298,8 +315,9 @@ impl Backend for OnePasswordBackend {
         let output = run_command(
             "op",
             &["item", "list", "--vault", &self.vault, "--format=json"],
-            &env
-        ).await?;
+            &env,
+        )
+        .await?;
 
         let op_items: Vec<OpItem> = serde_json::from_str(&output)
             .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to parse items: {}", e)))?;
@@ -335,7 +353,12 @@ impl Backend for OnePasswordBackend {
         Ok(items)
     }
 
-    async fn create_item(&mut self, name: &str, content: &str, session: &dyn Session) -> Result<()> {
+    async fn create_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         if self.item_exists(name, session).await? {
@@ -344,7 +367,7 @@ impl Backend for OnePasswordBackend {
 
         let item_name = self.item_name(name);
         let account = self.get_account(session);
-        
+
         let env = if !account.is_empty() {
             vec![("OP_SESSION", session.token())]
         } else {
@@ -364,19 +387,33 @@ impl Backend for OnePasswordBackend {
             }]
         });
 
-        let template_str = serde_json::to_string(&template)
-            .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to create template: {}", e)))?;
+        let template_str = serde_json::to_string(&template).map_err(|e| {
+            VaultmuxError::Other(anyhow::anyhow!("Failed to create template: {}", e))
+        })?;
 
         run_command(
             "op",
-            &["item", "create", "--vault", &self.vault, "--template", &template_str],
-            &env
-        ).await?;
+            &[
+                "item",
+                "create",
+                "--vault",
+                &self.vault,
+                "--template",
+                &template_str,
+            ],
+            &env,
+        )
+        .await?;
 
         Ok(())
     }
 
-    async fn update_item(&mut self, name: &str, content: &str, session: &dyn Session) -> Result<()> {
+    async fn update_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         if !self.item_exists(name, session).await? {
@@ -385,7 +422,7 @@ impl Backend for OnePasswordBackend {
 
         let item_name = self.item_name(name);
         let account = self.get_account(session);
-        
+
         let env = if !account.is_empty() {
             vec![("OP_SESSION", session.token())]
         } else {
@@ -394,9 +431,17 @@ impl Backend for OnePasswordBackend {
 
         run_command(
             "op",
-            &["item", "edit", &item_name, &format!("notesPlain={}", content), "--vault", &self.vault],
-            &env
-        ).await?;
+            &[
+                "item",
+                "edit",
+                &item_name,
+                &format!("notesPlain={}", content),
+                "--vault",
+                &self.vault,
+            ],
+            &env,
+        )
+        .await?;
 
         Ok(())
     }
@@ -406,7 +451,7 @@ impl Backend for OnePasswordBackend {
 
         let item_name = self.item_name(name);
         let account = self.get_account(session);
-        
+
         let env = if !account.is_empty() {
             vec![("OP_SESSION", session.token())]
         } else {
@@ -416,8 +461,10 @@ impl Backend for OnePasswordBackend {
         run_command(
             "op",
             &["item", "delete", &item_name, "--vault", &self.vault],
-            &env
-        ).await.map_err(|e| {
+            &env,
+        )
+        .await
+        .map_err(|e| {
             if e.to_string().contains("isn't an item") {
                 VaultmuxError::NotFound(name.to_string())
             } else {
@@ -430,18 +477,14 @@ impl Backend for OnePasswordBackend {
 
     async fn list_locations(&self, session: &dyn Session) -> Result<Vec<String>> {
         let account = self.get_account(session);
-        
+
         let env = if !account.is_empty() {
             vec![("OP_SESSION", session.token())]
         } else {
             vec![]
         };
 
-        let output = run_command(
-            "op",
-            &["vault", "list", "--format=json"],
-            &env
-        ).await?;
+        let output = run_command("op", &["vault", "list", "--format=json"], &env).await?;
 
         let vaults: Vec<OpVault> = serde_json::from_str(&output)
             .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to parse vaults: {}", e)))?;
@@ -467,7 +510,7 @@ impl Backend for OnePasswordBackend {
         session: &dyn Session,
     ) -> Result<Vec<Item>> {
         let account = self.get_account(session);
-        
+
         let env = if !account.is_empty() {
             vec![("OP_SESSION", session.token())]
         } else {
@@ -477,8 +520,9 @@ impl Backend for OnePasswordBackend {
         let output = run_command(
             "op",
             &["item", "list", "--vault", loc_value, "--format=json"],
-            &env
-        ).await?;
+            &env,
+        )
+        .await?;
 
         let op_items: Vec<OpItem> = serde_json::from_str(&output)
             .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to parse items: {}", e)))?;
@@ -521,8 +565,7 @@ mod tests {
 
     #[test]
     fn test_item_name() {
-        let config = Config::new(crate::BackendType::OnePassword)
-            .with_option("prefix", "test-");
+        let config = Config::new(crate::BackendType::OnePassword).with_option("prefix", "test-");
         let backend = OnePasswordBackend::new(config);
 
         assert_eq!(backend.item_name("api-key"), "test-api-key");
@@ -530,8 +573,7 @@ mod tests {
 
     #[test]
     fn test_item_name_no_prefix() {
-        let config = Config::new(crate::BackendType::OnePassword)
-            .with_option("prefix", "");
+        let config = Config::new(crate::BackendType::OnePassword).with_option("prefix", "");
         let backend = OnePasswordBackend::new(config);
 
         assert_eq!(backend.item_name("api-key"), "api-key");
@@ -539,8 +581,7 @@ mod tests {
 
     #[test]
     fn test_strip_prefix() {
-        let config = Config::new(crate::BackendType::OnePassword)
-            .with_option("prefix", "test-");
+        let config = Config::new(crate::BackendType::OnePassword).with_option("prefix", "test-");
         let backend = OnePasswordBackend::new(config);
 
         assert_eq!(backend.strip_prefix("test-api-key"), Some("api-key"));

@@ -194,8 +194,8 @@ impl SessionCache {
     /// to a chrono Duration.
     pub async fn save(&self, token: impl Into<String>, backend: impl Into<String>) -> Result<()> {
         let now = Utc::now();
-        let ttl_duration = Duration::from_std(self.ttl)
-            .map_err(|e| VaultmuxError::Other(e.into()))?;
+        let ttl_duration =
+            Duration::from_std(self.ttl).map_err(|e| VaultmuxError::Other(e.into()))?;
 
         let session = CachedSession {
             token: token.into(),
@@ -244,7 +244,7 @@ mod tests {
     async fn test_session_cache_save_and_load() {
         let dir = tempdir().unwrap();
         let cache_path = dir.path().join("session.json");
-        
+
         let cache = SessionCache::new(&cache_path, std::time::Duration::from_secs(3600))
             .await
             .unwrap();
@@ -253,7 +253,7 @@ mod tests {
 
         let loaded = cache.load().await.unwrap();
         assert!(loaded.is_some());
-        
+
         let session = loaded.unwrap();
         assert_eq!(session.token, "test-token");
         assert_eq!(session.backend, "test-backend");
@@ -263,7 +263,7 @@ mod tests {
     async fn test_session_cache_expiry() {
         let dir = tempdir().unwrap();
         let cache_path = dir.path().join("session.json");
-        
+
         let cache = SessionCache::new(&cache_path, std::time::Duration::from_millis(100))
             .await
             .unwrap();
@@ -280,7 +280,7 @@ mod tests {
     async fn test_session_cache_clear() {
         let dir = tempdir().unwrap();
         let cache_path = dir.path().join("session.json");
-        
+
         let cache = SessionCache::new(&cache_path, std::time::Duration::from_secs(3600))
             .await
             .unwrap();

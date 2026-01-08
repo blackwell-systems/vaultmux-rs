@@ -54,7 +54,7 @@ impl PassBackend {
         let mut items = Vec::new();
         for line in output.lines() {
             let line = line.trim();
-            
+
             // Skip the store path header and tree characters
             if line.starts_with("Password Store") || line.is_empty() {
                 continue;
@@ -160,13 +160,15 @@ impl Backend for PassBackend {
         validate_item_name(name)?;
 
         let path = self.item_path(name);
-        let content = run_command("pass", &["show", &path], &[]).await.map_err(|e| {
-            if e.to_string().contains("not in the password store") {
-                VaultmuxError::NotFound(name.to_string())
-            } else {
-                e
-            }
-        })?;
+        let content = run_command("pass", &["show", &path], &[])
+            .await
+            .map_err(|e| {
+                if e.to_string().contains("not in the password store") {
+                    VaultmuxError::NotFound(name.to_string())
+                } else {
+                    e
+                }
+            })?;
 
         Ok(Item {
             id: name.to_string(),
@@ -188,13 +190,15 @@ impl Backend for PassBackend {
         validate_item_name(name)?;
 
         let path = self.item_path(name);
-        let content = run_command("pass", &["show", &path], &[]).await.map_err(|e| {
-            if e.to_string().contains("not in the password store") {
-                VaultmuxError::NotFound(name.to_string())
-            } else {
-                e
-            }
-        })?;
+        let content = run_command("pass", &["show", &path], &[])
+            .await
+            .map_err(|e| {
+                if e.to_string().contains("not in the password store") {
+                    VaultmuxError::NotFound(name.to_string())
+                } else {
+                    e
+                }
+            })?;
 
         Ok(content.trim().to_string())
     }
@@ -235,7 +239,12 @@ impl Backend for PassBackend {
         Ok(items)
     }
 
-    async fn create_item(&mut self, name: &str, content: &str, _session: &dyn Session) -> Result<()> {
+    async fn create_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        _session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         // Check if item already exists
@@ -244,15 +253,19 @@ impl Backend for PassBackend {
         }
 
         let path = self.item_path(name);
-        
+
         // pass insert reads from stdin
-        crate::cli::run_command_with_stdin("pass", &["insert", "-m", &path], &[], content)
-            .await?;
+        crate::cli::run_command_with_stdin("pass", &["insert", "-m", &path], &[], content).await?;
 
         Ok(())
     }
 
-    async fn update_item(&mut self, name: &str, content: &str, _session: &dyn Session) -> Result<()> {
+    async fn update_item(
+        &mut self,
+        name: &str,
+        content: &str,
+        _session: &dyn Session,
+    ) -> Result<()> {
         validate_item_name(name)?;
 
         // Check if item exists
@@ -261,7 +274,7 @@ impl Backend for PassBackend {
         }
 
         let path = self.item_path(name);
-        
+
         // pass insert with -f (force) overwrites
         crate::cli::run_command_with_stdin("pass", &["insert", "-m", "-f", &path], &[], content)
             .await?;
@@ -273,7 +286,7 @@ impl Backend for PassBackend {
         validate_item_name(name)?;
 
         let path = self.item_path(name);
-        
+
         // pass rm with -f (force, no confirmation)
         run_command("pass", &["rm", "-f", &path], &[])
             .await

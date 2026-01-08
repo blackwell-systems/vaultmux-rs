@@ -4,8 +4,7 @@ use crate::backends::aws::AWSSession;
 use crate::validation::validate_item_name;
 use crate::{Backend, Config, Item, ItemType, Result, Session, VaultmuxError};
 use async_trait::async_trait;
-use aws_config::meta::region::RegionProviderChain;
-use aws_sdk_secretsmanager::{types::Tag, Client};
+use aws_sdk_secretsmanager::Client;
 use std::sync::Arc;
 
 /// AWS Secrets Manager backend.
@@ -61,19 +60,15 @@ impl Backend for AWSBackend {
 
     async fn init(&mut self) -> Result<()> {
         // Set up AWS SDK config
-        let region_provider = RegionProviderChain::first_try(self.region.clone())
-            .or_default_provider()
-            .or_else("us-east-1");
-
-        let mut config_builder = aws_config::defaults(aws_config::BehaviorVersion::latest())
-            .region(region_provider);
+        let mut config_loader = aws_config::defaults(aws_config::BehaviorVersion::latest())
+            .region(aws_config::Region::new(self.region.clone()));
 
         // Use custom endpoint if provided (for LocalStack testing)
         if let Some(ref endpoint) = self.endpoint {
-            config_builder = config_builder.endpoint_url(endpoint);
+            config_loader = config_loader.endpoint_url(endpoint);
         }
 
-        let config = config_builder.load().await;
+        let config = config_loader.load().await;
         self.client = Some(Client::new(&config));
 
         Ok(())
@@ -142,13 +137,11 @@ impl Backend for AWSBackend {
             notes: Some(secret_string.to_string()),
             fields: None,
             location: None,
-            created: response.created_date().map(|d| {
-                chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())
-                    .unwrap_or_default()
+            created: response.created_date().and_then(|d| {
+                chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos() as u32)
             }),
-            modified: response.last_changed_date().map(|d| {
-                chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())
-                    .unwrap_or_default()
+            modified: response.last_changed_date().and_then(|d| {
+                chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos() as u32)
             }),
         })
     }
@@ -197,29 +190,25 @@ impl Backend for AWSBackend {
                 .await
                 .map_err(|e| VaultmuxError::Other(anyhow::anyhow!("Failed to list secrets: {}", e)))?;
 
-            if let Some(secret_list) = response.secret_list() {
-                for secret in secret_list {
-                    let full_name = secret.name().unwrap_or("");
-                    
-                    // Filter by prefix
-                    if let Some(name) = full_name.strip_prefix(&self.prefix) {
-                        items.push(Item {
-                            id: secret.arn().unwrap_or("").to_string(),
-                            name: name.to_string(),
-                            item_type: ItemType::SecureNote,
-                            notes: None, // Don't fetch values for list
-                            fields: None,
-                            location: None,
-                            created: secret.created_date().map(|d| {
-                                chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())
-                                    .unwrap_or_default()
-                            }),
-                            modified: secret.last_changed_date().map(|d| {
-                                chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())
-                                    .unwrap_or_default()
-                            }),
-                        });
-                    }
+            for secret in response.secret_list() {
+                let Some(full_name) = secret.name() else { continue };
+                
+                // Filter by prefix
+                if let Some(name) = full_name.strip_prefix(&self.prefix) {
+                    items.push(Item {
+                        id: secret.arn().unwrap_or("").to_string(),
+                        name: name.to_string(),
+                        item_type: ItemType::SecureNote,
+                        notes: None, // Don't fetch values for list
+                        fields: None,
+                        location: None,
+                        created: secret.created_date().and_then(|d| {
+                            chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos() as u32)
+                        }),
+                        modified: secret.last_changed_date().and_then(|d| {
+                            chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos() as u32)
+                        }),
+                    });
                 }
             }
 

@@ -95,6 +95,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(feature = "bitwarden"))]
     fn test_unknown_backend_error() {
         let config = Config::new(BackendType::Bitwarden);
         let result = new_backend(config);

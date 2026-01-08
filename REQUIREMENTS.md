@@ -3,7 +3,8 @@
 ## Rust Version
 
 - **Minimum**: Rust 1.75 (for most backends)
-- **Recommended**: Rust 1.88+ (for AWS SDK backend)
+- **Required for AWS**: Rust 1.88+ (AWS SDK 1.x requires this)
+- **Tested on**: Rust 1.92.0
 
 ### Backend-Specific Requirements
 

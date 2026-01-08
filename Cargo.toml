@@ -2,8 +2,8 @@
 name = "vaultmux"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.83"
-# Note: Cloud SDK backends (AWS, GCP, Azure) require Rust 1.83+ due to dependencies
+rust-version = "1.88"
+# Note: AWS SDK requires Rust 1.88+, which sets the MSRV for all cloud backends
 authors = ["Dayna Blackwell <dayna@blackwellsystems.com>"]
 license = "MIT OR Apache-2.0"
 description = "Unified interface for multi-vault secret management"

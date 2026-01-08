@@ -14,10 +14,12 @@ pub struct AWSSession {
 }
 
 impl AWSSession {
+    /// Creates a new AWS session for the specified region.
     pub fn new(region: String) -> Self {
         Self { region }
     }
 
+    /// Returns the AWS region for this session.
     pub fn region(&self) -> &str {
         &self.region
     }

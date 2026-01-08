@@ -13,6 +13,7 @@ use chrono::{DateTime, Utc};
 pub struct PassSession;
 
 impl PassSession {
+    /// Creates a new pass session.
     pub fn new() -> Self {
         Self
     }

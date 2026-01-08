@@ -25,13 +25,13 @@ This is a Rust port of the [Go vaultmux library](https://github.com/blackwell-sy
 | Backend | Feature Flag | CLI Required | Platform | Status |
 |---------|-------------|--------------|----------|--------|
 | **Mock** | `mock` (default) | None | All | ✅ Implemented |
-| **Bitwarden** | `bitwarden` | `bw` | All | 📋 Planned |
-| **1Password** | `onepassword` | `op` | All | 📋 Planned |
-| **pass** | `pass` | `pass`, `gpg` | Unix | 📋 Planned |
+| **pass** | `pass` | `pass`, `gpg` | Unix | ✅ Implemented |
+| **Bitwarden** | `bitwarden` | `bw` | All | ✅ Implemented |
+| **1Password** | `onepassword` | `op` | All | ✅ Implemented |
+| **AWS Secrets Manager** | `aws` | None (SDK) | All | ✅ Implemented |
+| **GCP Secret Manager** | `gcp` | None (SDK) | All | ✅ Implemented |
+| **Azure Key Vault** | `azure` | None (SDK) | All | ✅ Implemented |
 | **Windows Credential Manager** | `wincred` | PowerShell | Windows | 📋 Planned |
-| **AWS Secrets Manager** | `aws` | None (SDK) | All | 📋 Planned |
-| **GCP Secret Manager** | `gcp` | None (SDK) | All | 📋 Planned |
-| **Azure Key Vault** | `azure` | None (SDK) | All | 📋 Planned |
 
 ## Installation
 

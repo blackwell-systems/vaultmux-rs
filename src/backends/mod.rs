@@ -21,10 +21,8 @@ pub mod gcp;
 #[cfg(feature = "azure")]
 pub mod azure;
 
-// TODO: Add remaining backends
-//
-// #[cfg(all(feature = "wincred", target_os = "windows"))]
-// pub mod wincred;
+#[cfg(feature = "wincred")]
+pub mod wincred;
 
 /// Registers all compiled backends with the factory.
 ///
@@ -52,5 +50,6 @@ pub fn register_all() {
     #[cfg(feature = "azure")]
     azure::register();
 
-    // TODO: Register other backends as they're implemented
+    #[cfg(feature = "wincred")]
+    wincred::register();
 }

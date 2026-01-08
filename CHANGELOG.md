@@ -39,13 +39,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Architecture documentation in RUST_PORT_PLAN.md
 - Examples directory
 
-## [0.1.0] - TBD
+## [0.1.0] - 2026-01-08
 
 ### Added
-- Initial release with full feature parity to Go vaultmux
-- All 8 backends implemented and tested
-- 54 unit tests + 20 doc tests passing
+- Initial stable release with full feature parity to Go vaultmux
+- All 8 backends implemented and tested:
+  - CLI backends: pass, Bitwarden, 1Password
+  - Cloud SDK backends: AWS Secrets Manager, GCP Secret Manager, Azure Key Vault
+  - Platform-specific: Windows Credential Manager
+  - Testing: Mock backend
+- 73 comprehensive tests (53 unit + 20 doc tests) - all passing
 - Cross-platform support (Linux, macOS, Windows)
+- 6 runnable examples with real-world patterns
+- GitHub Actions CI/CD pipelines (4 workflows)
+- Security policy and audit documentation
+- 100% public API documentation coverage
+- MSRV: Rust 1.88.0
 
 [Unreleased]: https://github.com/blackwell-systems/vaultmux-rs/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/blackwell-systems/vaultmux-rs/releases/tag/v0.1.0

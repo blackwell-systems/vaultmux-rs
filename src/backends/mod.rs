@@ -6,9 +6,8 @@ pub mod mock;
 #[cfg(feature = "pass")]
 pub mod pass;
 
-// TODO: Add other backends as they're implemented
-// #[cfg(feature = "bitwarden")]
-// pub mod bitwarden;
+#[cfg(feature = "bitwarden")]
+pub mod bitwarden;
 //
 // #[cfg(feature = "onepassword")]
 // pub mod onepassword;
@@ -35,6 +34,9 @@ pub fn register_all() {
 
     #[cfg(feature = "pass")]
     pass::register();
+
+    #[cfg(feature = "bitwarden")]
+    bitwarden::register();
 
     // TODO: Register other backends as they're implemented
 }

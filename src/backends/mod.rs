@@ -1,0 +1,37 @@
+//! Backend implementations.
+
+#[cfg(feature = "mock")]
+pub mod mock;
+
+// TODO: Add other backends as they're implemented
+// #[cfg(feature = "bitwarden")]
+// pub mod bitwarden;
+//
+// #[cfg(feature = "onepassword")]
+// pub mod onepassword;
+//
+// #[cfg(feature = "pass")]
+// pub mod pass;
+//
+// #[cfg(all(feature = "wincred", target_os = "windows"))]
+// pub mod wincred;
+//
+// #[cfg(feature = "aws")]
+// pub mod aws;
+//
+// #[cfg(feature = "gcp")]
+// pub mod gcp;
+//
+// #[cfg(feature = "azure")]
+// pub mod azure;
+
+/// Registers all compiled backends with the factory.
+///
+/// This should be called automatically when the library is used,
+/// but can also be called explicitly if needed.
+pub fn register_all() {
+    #[cfg(feature = "mock")]
+    mock::register();
+
+    // TODO: Register other backends as they're implemented
+}

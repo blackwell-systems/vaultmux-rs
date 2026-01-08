@@ -1,0 +1,55 @@
+[package]
+name = "vaultmux"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+authors = ["Dayna Blackwell <dayna@blackwellsystems.com>"]
+license = "MIT OR Apache-2.0"
+description = "Unified interface for multi-vault secret management"
+repository = "https://github.com/blackwell-systems/vaultmux-rs"
+homepage = "https://github.com/blackwell-systems/vaultmux-rs"
+documentation = "https://docs.rs/vaultmux"
+keywords = ["vault", "secrets", "bitwarden", "1password", "aws"]
+categories = ["authentication", "api-bindings"]
+
+[dependencies]
+tokio = { version = "1.35", features = ["process", "fs", "io-util", "time", "sync", "macros"] }
+async-trait = "0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "1.0"
+anyhow = "1.0"
+uuid = { version = "1.6", features = ["v4", "serde"] }
+lazy_static = "1.4"
+
+aws-config = { version = "1.1", optional = true }
+aws-sdk-secretsmanager = { version = "1.12", optional = true }
+google-secretmanager1 = { version = "5.0", optional = true }
+azure_security_keyvault = { version = "0.20", optional = true }
+azure_identity = { version = "0.20", optional = true }
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.52", features = ["Win32_Security_Credentials"], optional = true }
+
+[dev-dependencies]
+tokio = { version = "1.35", features = ["rt-multi-thread", "test-util"] }
+tempfile = "3.8"
+
+[features]
+default = ["mock"]
+full = ["bitwarden", "onepassword", "pass", "wincred", "aws", "gcp", "azure"]
+
+mock = []
+bitwarden = []
+onepassword = []
+pass = []
+wincred = ["windows"]
+
+aws = ["dep:aws-config", "dep:aws-sdk-secretsmanager"]
+gcp = ["dep:google-secretmanager1"]
+azure = ["dep:azure_security_keyvault", "dep:azure_identity"]
+
+[[example]]
+name = "basic"
+required-features = ["mock"]

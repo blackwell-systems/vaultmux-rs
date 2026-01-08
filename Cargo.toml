@@ -3,6 +3,7 @@ name = "vaultmux"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
+# Note: AWS backend requires Rust 1.88+ due to AWS SDK dependencies
 authors = ["Dayna Blackwell <dayna@blackwellsystems.com>"]
 license = "MIT OR Apache-2.0"
 description = "Unified interface for multi-vault secret management"
@@ -25,8 +26,8 @@ lazy_static = "1.4"
 base64 = "0.22"
 futures = "0.3"
 
-aws-config = { version = "1.1", optional = true }
-aws-sdk-secretsmanager = { version = "1.12", optional = true }
+aws-config = { version = "0.57", optional = true }
+aws-sdk-secretsmanager = { version = "0.39", optional = true }
 google-secretmanager1 = { version = "5.0", optional = true }
 azure_security_keyvault = { version = "0.20", optional = true }
 azure_identity = { version = "0.20", optional = true }

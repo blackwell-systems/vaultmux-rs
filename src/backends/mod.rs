@@ -8,15 +8,16 @@ pub mod pass;
 
 #[cfg(feature = "bitwarden")]
 pub mod bitwarden;
-//
+
+#[cfg(feature = "aws")]
+pub mod aws;
+
+// TODO: Add remaining backends
 // #[cfg(feature = "onepassword")]
 // pub mod onepassword;
 //
 // #[cfg(all(feature = "wincred", target_os = "windows"))]
 // pub mod wincred;
-//
-// #[cfg(feature = "aws")]
-// pub mod aws;
 //
 // #[cfg(feature = "gcp")]
 // pub mod gcp;
@@ -37,6 +38,9 @@ pub fn register_all() {
 
     #[cfg(feature = "bitwarden")]
     bitwarden::register();
+
+    #[cfg(feature = "aws")]
+    aws::register();
 
     // TODO: Register other backends as they're implemented
 }

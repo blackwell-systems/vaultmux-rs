@@ -1,16 +1,16 @@
 //! Backend factory and registration system.
 
 use crate::{Backend, Config, Result, VaultmuxError};
-use lazy_static::lazy_static;
 use std::collections::HashMap;
-use std::sync::RwLock;
+use std::sync::{OnceLock, RwLock};
 
 /// Factory function type for creating backends.
 pub type BackendFactory = fn(Config) -> Result<Box<dyn Backend>>;
 
-lazy_static! {
-    static ref BACKEND_REGISTRY: RwLock<HashMap<String, BackendFactory>> =
-        RwLock::new(HashMap::new());
+static BACKEND_REGISTRY: OnceLock<RwLock<HashMap<String, BackendFactory>>> = OnceLock::new();
+
+fn registry() -> &'static RwLock<HashMap<String, BackendFactory>> {
+    BACKEND_REGISTRY.get_or_init(|| RwLock::new(HashMap::new()))
 }
 
 /// Registers a backend factory function.
@@ -34,8 +34,8 @@ lazy_static! {
 /// }
 /// ```
 pub fn register_backend(backend_type: &str, factory: BackendFactory) {
-    let mut registry = BACKEND_REGISTRY.write().unwrap();
-    registry.insert(backend_type.to_string(), factory);
+    let mut reg = registry().write().unwrap();
+    reg.insert(backend_type.to_string(), factory);
 }
 
 /// Creates a new backend from configuration.
@@ -65,8 +65,8 @@ pub fn register_backend(backend_type: &str, factory: BackendFactory) {
 pub fn new_backend(config: Config) -> Result<Box<dyn Backend>> {
     let backend_name = config.backend.to_string();
 
-    let registry = BACKEND_REGISTRY.read().unwrap();
-    let factory = registry.get(&backend_name).ok_or_else(|| {
+    let reg = registry().read().unwrap();
+    let factory = reg.get(&backend_name).ok_or_else(|| {
         VaultmuxError::Other(anyhow::anyhow!(
             "unknown backend: {} (did you enable the '{}' feature flag?)",
             backend_name,
@@ -90,8 +90,8 @@ mod tests {
     fn test_backend_registration() {
         register_backend("test-backend", mock_factory);
 
-        let registry = BACKEND_REGISTRY.read().unwrap();
-        assert!(registry.contains_key("test-backend"));
+        let reg = registry().read().unwrap();
+        assert!(reg.contains_key("test-backend"));
     }
 
     #[test]

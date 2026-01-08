@@ -88,17 +88,9 @@ pub use error::{Result, VaultmuxError};
 pub use item::{Item, ItemType};
 pub use session::Session;
 
-use lazy_static::lazy_static;
 use std::sync::Once;
 
 static INIT: Once = Once::new();
-
-lazy_static! {
-    /// Ensures all backends are registered exactly once.
-    static ref REGISTER_BACKENDS: () = {
-        backends::register_all();
-    };
-}
 
 /// Initializes the vaultmux library.
 ///
@@ -107,7 +99,7 @@ lazy_static! {
 /// if needed (it's idempotent).
 pub fn init() {
     INIT.call_once(|| {
-        lazy_static::initialize(&REGISTER_BACKENDS);
+        backends::register_all();
     });
 }
 

@@ -260,7 +260,7 @@ mod tests {
 
     #[test]
     fn test_status_cache() {
-        let mut cache = StatusCache::new(Duration::from_millis(100));
+        let mut cache = StatusCache::new(Duration::from_secs(2));
 
         // Initially empty
         assert_eq!(cache.get(), None);
@@ -269,13 +269,18 @@ mod tests {
         cache.set(true);
         assert_eq!(cache.get(), Some(true));
 
-        // Still valid
-        std::thread::sleep(Duration::from_millis(50));
+        // Still valid after short delay
+        std::thread::sleep(Duration::from_millis(100));
         assert_eq!(cache.get(), Some(true));
 
-        // Expired
-        std::thread::sleep(Duration::from_millis(100));
-        assert_eq!(cache.get(), None);
+        // Test expiration with a new cache (faster than waiting 2 seconds)
+        let mut cache2 = StatusCache::new(Duration::from_millis(200));
+        cache2.set(false);
+        assert_eq!(cache2.get(), Some(false));
+        
+        // Wait for expiration
+        std::thread::sleep(Duration::from_millis(250));
+        assert_eq!(cache2.get(), None);
     }
 
     #[test]

@@ -151,7 +151,7 @@ impl Config {
     /// - `prefix`: Secret name prefix (e.g., "myapp-")
     ///
     /// **Azure Key Vault:**
-    /// - `vault_url`: Key Vault URL (e.g., "https://myvault.vault.azure.net/")
+    /// - `vault_url`: Key Vault URL (e.g., "<https://myvault.vault.azure.net/>")
     /// - `prefix`: Secret name prefix (e.g., "myapp-")
     pub fn with_option(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
         self.options.insert(key.into(), value.into());

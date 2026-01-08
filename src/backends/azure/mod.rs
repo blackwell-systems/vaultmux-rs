@@ -13,7 +13,7 @@
 //!
 //! # Configuration
 //!
-//! - `vault_url`: Azure Key Vault URL (required, e.g., "https://myvault.vault.azure.net")
+//! - `vault_url`: Azure Key Vault URL (required, e.g., "<https://myvault.vault.azure.net>")
 //! - `prefix`: Secret name prefix for namespacing
 //!
 //! # Example

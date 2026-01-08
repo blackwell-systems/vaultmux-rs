@@ -18,13 +18,13 @@ pub mod onepassword;
 #[cfg(feature = "gcp")]
 pub mod gcp;
 
+#[cfg(feature = "azure")]
+pub mod azure;
+
 // TODO: Add remaining backends
 //
 // #[cfg(all(feature = "wincred", target_os = "windows"))]
 // pub mod wincred;
-//
-// #[cfg(feature = "azure")]
-// pub mod azure;
 
 /// Registers all compiled backends with the factory.
 ///
@@ -48,6 +48,9 @@ pub fn register_all() {
 
     #[cfg(feature = "gcp")]
     gcp::register();
+
+    #[cfg(feature = "azure")]
+    azure::register();
 
     // TODO: Register other backends as they're implemented
 }

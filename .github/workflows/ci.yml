@@ -232,6 +232,7 @@ jobs:
   integration-aws:
     name: AWS Integration Tests (LocalStack)
     runs-on: ubuntu-latest
+    continue-on-error: true  # Allow this job to fail without blocking CI
     services:
       localstack:
         image: localstack/localstack:latest

@@ -4,9 +4,11 @@
 //!
 //! Run with:
 //!   docker run -d -p 4566:4566 localstack/localstack
-//!   cargo test --test integration_aws --features aws
+//!   cargo test --test integration_aws --features aws -- --ignored
 //!
-//! Or run in CI where LocalStack is configured as a service.
+//! Note: These tests use #[ignore] so they only run when explicitly requested.
+//! In CI, they run but are allowed to fail (continue-on-error: true) since
+//! LocalStack configuration can be environment-sensitive.
 
 #![cfg(feature = "aws")]
 

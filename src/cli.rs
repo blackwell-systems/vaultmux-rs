@@ -277,7 +277,7 @@ mod tests {
         let mut cache2 = StatusCache::new(Duration::from_millis(200));
         cache2.set(false);
         assert_eq!(cache2.get(), Some(false));
-        
+
         // Wait for expiration
         std::thread::sleep(Duration::from_millis(250));
         assert_eq!(cache2.get(), None);

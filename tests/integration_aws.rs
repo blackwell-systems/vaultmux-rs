@@ -58,7 +58,7 @@ async fn setup_backend() -> (Box<dyn Backend>, std::sync::Arc<dyn vaultmux::Sess
 async fn test_aws_create_and_get() {
     let (mut backend, session) = setup_backend().await;
 
-    let secret_name = "test-secret-1";
+    let secret_name = "secret-1";
     let secret_value = "my-secret-value";
 
     // Create secret
@@ -84,7 +84,7 @@ async fn test_aws_create_and_get() {
 async fn test_aws_update() {
     let (mut backend, session) = setup_backend().await;
 
-    let secret_name = "test-secret-2";
+    let secret_name = "secret-2";
     let initial_value = "initial-value";
     let updated_value = "updated-value";
 
@@ -117,7 +117,7 @@ async fn test_aws_update() {
 async fn test_aws_delete() {
     let (mut backend, session) = setup_backend().await;
 
-    let secret_name = "test-secret-3";
+    let secret_name = "secret-3";
 
     // Create
     backend
@@ -194,7 +194,7 @@ async fn test_aws_list() {
 async fn test_aws_already_exists_error() {
     let (mut backend, session) = setup_backend().await;
 
-    let secret_name = "test-duplicate";
+    let secret_name = "duplicate";
 
     // Create first time
     backend
@@ -226,7 +226,7 @@ async fn test_aws_not_found_error() {
 async fn test_aws_get_item_with_metadata() {
     let (mut backend, session) = setup_backend().await;
 
-    let secret_name = "test-metadata";
+    let secret_name = "metadata";
     let secret_value = "value-with-metadata";
 
     // Create secret

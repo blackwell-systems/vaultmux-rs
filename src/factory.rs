@@ -80,6 +80,7 @@ pub fn new_backend(config: Config) -> Result<Box<dyn Backend>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::BackendType;
 
     fn mock_factory(_cfg: Config) -> Result<Box<dyn Backend>> {
         Err(VaultmuxError::Other(anyhow::anyhow!("mock factory")))

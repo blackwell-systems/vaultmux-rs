@@ -24,14 +24,14 @@ This is a Rust port of the [Go vaultmux library](https://github.com/blackwell-sy
 
 | Backend | Feature Flag | CLI Required | Platform | Status |
 |---------|-------------|--------------|----------|--------|
-| **Mock** | `mock` (default) | None | All | ✅ Implemented |
-| **pass** | `pass` | `pass`, `gpg` | Unix | ✅ Implemented |
-| **Bitwarden** | `bitwarden` | `bw` | All | ✅ Implemented |
-| **1Password** | `onepassword` | `op` | All | ✅ Implemented |
-| **AWS Secrets Manager** | `aws` | None (SDK) | All | ✅ Implemented |
-| **GCP Secret Manager** | `gcp` | None (SDK) | All | ✅ Implemented |
-| **Azure Key Vault** | `azure` | None (SDK) | All | ✅ Implemented |
-| **Windows Credential Manager** | `wincred` | PowerShell | Windows | ✅ Implemented |
+| **Mock** | `mock` (default) | None | All | Implemented |
+| **pass** | `pass` | `pass`, `gpg` | Unix | Implemented |
+| **Bitwarden** | `bitwarden` | `bw` | All | Implemented |
+| **1Password** | `onepassword` | `op` | All | Implemented |
+| **AWS Secrets Manager** | `aws` | None (SDK) | All | Implemented |
+| **GCP Secret Manager** | `gcp` | None (SDK) | All | Implemented |
+| **Azure Key Vault** | `azure` | None (SDK) | All | Implemented |
+| **Windows Credential Manager** | `wincred` | PowerShell | Windows | Implemented |
 
 ## Installation
 
@@ -86,29 +86,29 @@ async fn main() -> vaultmux::Result<()> {
 
 ## Current Status
 
-**Phase 1: Foundation** ✅ Complete
-- ✅ Core traits (`Backend`, `Session`)
-- ✅ Data types (`Item`, `ItemType`, `Config`)
-- ✅ Error system with `thiserror`
-- ✅ Factory pattern + registration
-- ✅ Session caching (disk-based with 0600 permissions)
-- ✅ Input validation (command injection prevention)
-- ✅ Mock backend + comprehensive tests (37 tests passing)
+**Phase 1: Foundation** - Complete
+- Core traits (`Backend`, `Session`)
+- Data types (`Item`, `ItemType`, `Config`)
+- Error system with `thiserror`
+- Factory pattern + registration
+- Session caching (disk-based with 0600 permissions)
+- Input validation (command injection prevention)
+- Mock backend + comprehensive tests (37 tests passing)
 
-**Phase 2: CLI Backends** ✅ Complete
-- ✅ Bitwarden (`bw` CLI)
-- ✅ 1Password (`op` CLI)
-- ✅ pass (`pass` + `gpg`)
+**Phase 2: CLI Backends** - Complete
+- Bitwarden (`bw` CLI)
+- 1Password (`op` CLI)
+- pass (`pass` + `gpg`)
 
-**Phase 3: Cloud Backends** ✅ Complete
-- ✅ AWS Secrets Manager
-- ✅ GCP Secret Manager
-- ✅ Azure Key Vault
+**Phase 3: Cloud Backends** - Complete
+- AWS Secrets Manager
+- GCP Secret Manager
+- Azure Key Vault
 
-**Phase 4: Platform-Specific** ✅ Complete
-- ✅ Windows Credential Manager
+**Phase 4: Platform-Specific** - Complete
+- Windows Credential Manager
 
-**Next Steps** 📋 Planned
+**Next Steps** - Planned
 - Integration tests for all backends
 - Documentation improvements
 - Usage examples

@@ -225,7 +225,7 @@ impl Backend for AWSBackend {
                 if !self.prefix.is_empty() && !full_name.starts_with(&self.prefix) {
                     continue;
                 }
-                
+
                 let name = if !self.prefix.is_empty() {
                     full_name.strip_prefix(&self.prefix).unwrap()
                 } else {
@@ -239,12 +239,12 @@ impl Backend for AWSBackend {
                     notes: None, // Don't fetch values for list
                     fields: None,
                     location: None,
-                    created: secret.created_date().and_then(|d| {
-                        chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())
-                    }),
-                    modified: secret.last_changed_date().and_then(|d| {
-                        chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())
-                    }),
+                    created: secret
+                        .created_date()
+                        .and_then(|d| chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())),
+                    modified: secret
+                        .last_changed_date()
+                        .and_then(|d| chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())),
                 });
             }
 

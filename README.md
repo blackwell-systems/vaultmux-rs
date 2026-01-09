@@ -178,8 +178,11 @@ cargo test --test integration_aws --features aws -- --ignored
 
 ## Documentation
 
-Generate and view documentation:
+**Complete Guides:**
+- [User Guide](docs/user-guide.md) - Installation, configuration, patterns, and best practices
+- [API Reference](docs/api-reference.md) - Detailed API documentation
 
+**Generated Docs:**
 ```bash
 cargo doc --open
 ```

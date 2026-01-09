@@ -258,6 +258,12 @@ async fn test_aws_get_item_with_metadata() {
 async fn test_aws_prefix_isolation() {
     let (mut backend, session) = setup_backend().await;
 
+    // Clean up any leftover secrets from previous test runs
+    let existing_items = backend.list_items(&*session).await.unwrap_or_default();
+    for item in existing_items {
+        backend.delete_item(&item.name, &*session).await.ok();
+    }
+
     // Our backend has "test-" prefix
     // Create a secret
     backend
@@ -271,11 +277,15 @@ async fn test_aws_prefix_isolation() {
         .await
         .expect("Failed to list items");
 
+    // Should have exactly one item
+    assert_eq!(items.len(), 1, "Expected exactly one item after cleanup");
+
     // All items should have names without the prefix (stripped)
     for item in &items {
         assert!(
             !item.name.starts_with("test-"),
-            "Prefix should be stripped from item names"
+            "Prefix should be stripped from item names, got: {}",
+            item.name
         );
     }
 

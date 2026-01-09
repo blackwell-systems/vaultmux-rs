@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Architecture documentation in RUST_PORT_PLAN.md
 - Examples directory
 
-## [0.1.0] - 2026-01-08
+## [0.1.0] - 2026-01-09
 
 ### Added
 - Initial stable release with full feature parity to Go vaultmux
@@ -48,13 +48,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cloud SDK backends: AWS Secrets Manager, GCP Secret Manager, Azure Key Vault
   - Platform-specific: Windows Credential Manager
   - Testing: Mock backend
-- 73 comprehensive tests (53 unit + 20 doc tests) - all passing
+- AWS integration tests with LocalStack support
+- 75+ comprehensive tests (unit + integration + doc tests) - all passing
 - Cross-platform support (Linux, macOS, Windows)
 - 6 runnable examples with real-world patterns
 - GitHub Actions CI/CD pipelines (4 workflows)
 - Security policy and audit documentation
 - 100% public API documentation coverage
 - MSRV: Rust 1.88.0
+
+### Documentation
+- Comprehensive user guide (docs/user-guide.md)
+- Complete API reference (docs/api-reference.md)
+- Documentation index with quick links
+- Landing page-optimized README (153 lines)
+- Inline rustdoc comments for all public APIs
 
 [Unreleased]: https://github.com/blackwell-systems/vaultmux-rs/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/blackwell-systems/vaultmux-rs/releases/tag/v0.1.0

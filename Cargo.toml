@@ -6,12 +6,13 @@ rust-version = "1.88"
 # Note: AWS SDK requires Rust 1.88+, which sets the MSRV for all cloud backends
 authors = ["Dayna Blackwell <dayna@blackwellsystems.com>"]
 license = "MIT OR Apache-2.0"
-description = "Unified interface for multi-vault secret management"
+description = "Unified async interface for password managers and cloud secret vaults - write once, support pass, Bitwarden, AWS, GCP, Azure"
 repository = "https://github.com/blackwell-systems/vaultmux-rs"
 homepage = "https://github.com/blackwell-systems/vaultmux-rs"
 documentation = "https://docs.rs/vaultmux"
-keywords = ["vault", "secrets", "bitwarden", "1password", "aws"]
-categories = ["authentication", "api-bindings"]
+readme = "README.md"
+keywords = ["secrets", "vault", "password-manager", "aws-secrets", "bitwarden"]
+categories = ["authentication", "api-bindings", "asynchronous"]
 
 [dependencies]
 tokio = { version = "1.35", features = ["process", "fs", "io-util", "time", "sync", "macros"] }

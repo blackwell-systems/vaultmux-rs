@@ -262,7 +262,7 @@ async fn test_aws_get_item_with_metadata() {
 async fn test_aws_prefix_isolation() {
     // Use unique prefix for this test to avoid conflicts with other tests
     init_library();
-    
+
     std::env::set_var("AWS_ACCESS_KEY_ID", "test");
     std::env::set_var("AWS_SECRET_ACCESS_KEY", "test");
     std::env::set_var("AWS_REGION", "us-east-1");

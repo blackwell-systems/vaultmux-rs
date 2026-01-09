@@ -1,91 +1,69 @@
-## 🎉 vaultmux v0.1.0 - Initial Stable Release
+# Vaultmux v0.1.0 - Initial Stable Release
 
-Rust port of the Go vaultmux library with 100% feature parity.
+**Write once, run anywhere** - Unified async interface for password managers and cloud secret vaults.
 
-### ✨ What's New
+## What is Vaultmux?
 
-**Unified secret management interface for 8 vault backends:**
-- CLI: pass, Bitwarden, 1Password
-- Cloud: AWS Secrets Manager, GCP Secret Manager, Azure Key Vault
-- Platform: Windows Credential Manager
-- Testing: Mock backend
-
-### 🚀 Key Features
-
-✅ **Type Safety** - Compile-time guarantees via Rust's type system  
-✅ **Memory Safety** - Zero data races, no GC overhead  
-✅ **Async/Await** - Non-blocking I/O with tokio  
-✅ **Feature Flags** - Optional backend compilation  
-✅ **Session Caching** - Disk-based with secure permissions  
-✅ **Input Validation** - Command injection prevention  
-✅ **Rich Errors** - Full error context and chaining  
-
-### 📦 Installation
-
-```toml
-[dependencies]
-vaultmux = "0.1"
-```
-
-Or with specific backends:
-```toml
-vaultmux = { version = "0.1", features = ["aws", "gcp", "azure"] }
-```
-
-### 📚 Quick Start
+Vaultmux provides one Rust API that works with 8 different secret backends. Switch from pass to AWS Secrets Manager by changing one line of configuration.
 
 ```rust
-use vaultmux::{factory, Backend, Config, BackendType};
-
-#[tokio::main]
-async fn main() -> vaultmux::Result<()> {
-    let config = Config::new(BackendType::Pass).with_prefix("myapp");
-    let mut backend = factory::new_backend(config)?;
-    backend.init().await?;
-    
-    let session = backend.authenticate().await?;
-    backend.create_item("api-key", "secret", &*session).await?;
-    
-    Ok(())
-}
+// Works with any backend - pass, Bitwarden, AWS, GCP, Azure, etc.
+let config = Config::new(BackendType::Pass).with_prefix("myapp");
+let mut backend = factory::new_backend(config)?;
+let session = backend.authenticate().await?;
+backend.create_item("api-key", "value", &*session).await?;
 ```
 
-### 📊 Stats
+## Supported Backends
 
-- **4,500+ lines** of Rust code
-- **73 tests** passing (53 unit + 20 doc)
-- **6 examples** with real-world patterns
-- **100% API documentation** coverage
-- **4 CI/CD workflows** for quality assurance
-- **Zero warnings** (clippy, rustdoc)
+- **CLI:** pass, Bitwarden, 1Password
+- **Cloud:** AWS Secrets Manager, GCP Secret Manager, Azure Key Vault
+- **Platform:** Windows Credential Manager
+- **Testing:** Mock backend
 
-### 🔒 Security
+## Key Features
 
-All security advisories documented in [SECURITY.md](SECURITY.md). No actual vulnerabilities affecting vaultmux's security model.
++ **Unified API** - Single `Backend` trait for all vaults
++ **Async/await** - Built on tokio for non-blocking I/O
++ **Type safety** - Rust enums prevent typos and bugs
++ **Session caching** - Secure disk-based caching (0600 permissions)
++ **Feature flags** - Compile only what you need
++ **Input validation** - Command injection prevention
++ **Testable** - Mock backend for unit tests
++ **Cross-platform** - Linux, macOS, Windows
 
-### 📖 Documentation
+## What's Included
 
-- [README](README.md) - Overview and quick start
-- [Examples](examples/README.md) - 6 runnable examples
-- [API Docs](https://docs.rs/vaultmux) - Complete API reference
-- [Security](SECURITY.md) - Security policy
-- [Changelog](CHANGELOG.md) - Full version history
+- 75+ tests (unit + integration + doc tests) - all passing
+- AWS integration tests with LocalStack
+- 6 runnable examples with real-world patterns
+- Comprehensive user guide (docs/user-guide.md)
+- Complete API reference (docs/api-reference.md)
+- GitHub Actions CI/CD (4 workflows)
+- Security policy and audit documentation
 
-### ⚙️ Requirements
+## Installation
 
-- **Rust:** 1.88.0 or later
-- **Runtime:** tokio
-- **Platform:** Linux, macOS, or Windows
+\`\`\`toml
+[dependencies]
+vaultmux = { version = "0.1", features = ["bitwarden", "aws"] }
+\`\`\`
 
-### 🙏 Acknowledgments
+Available features: \`mock\`, \`pass\`, \`bitwarden\`, \`onepassword\`, \`aws\`, \`gcp\`, \`azure\`, \`wincred\`, or \`full\` for all backends.
 
-Rust port by Dayna Blackwell (Blackwell Systems™)  
-Original Go implementation: https://github.com/blackwell-systems/vaultmux
+## Documentation
 
-### 📝 License
+- **[User Guide](https://github.com/blackwell-systems/vaultmux-rs/blob/main/docs/user-guide.md)** - Setup, patterns, best practices
+- **[API Reference](https://github.com/blackwell-systems/vaultmux-rs/blob/main/docs/api-reference.md)** - Complete API documentation
+- **[Examples](https://github.com/blackwell-systems/vaultmux-rs/tree/main/examples)** - Real-world usage patterns
+- **[docs.rs](https://docs.rs/vaultmux)** - Generated documentation
 
-Dual-licensed under MIT OR Apache-2.0
+## Requirements
 
----
+- Rust 1.88.0 or later (MSRV)
+- Tokio async runtime
+- Backend-specific requirements (CLI tools, cloud credentials, etc.)
 
-**Ready to use in production!** Report issues at https://github.com/blackwell-systems/vaultmux-rs/issues
+## License
+
+MIT OR Apache-2.0

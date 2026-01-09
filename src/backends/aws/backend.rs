@@ -123,7 +123,8 @@ impl Backend for AWSBackend {
             .send()
             .await
             .map_err(|e| {
-                if e.to_string().contains("ResourceNotFoundException") {
+                let error_str = format!("{:?}", e);
+                if error_str.contains("ResourceNotFoundException") {
                     VaultmuxError::NotFound(name.to_string())
                 } else {
                     VaultmuxError::Other(anyhow::anyhow!("AWS error: {}", e))
@@ -183,8 +184,15 @@ impl Backend for AWSBackend {
             .await
         {
             Ok(_) => Ok(true),
-            Err(e) if e.to_string().contains("ResourceNotFoundException") => Ok(false),
-            Err(e) => Err(VaultmuxError::Other(anyhow::anyhow!("AWS error: {}", e))),
+            Err(e) => {
+                // Check if the error is ResourceNotFoundException
+                let error_str = format!("{:?}", e);
+                if error_str.contains("ResourceNotFoundException") {
+                    Ok(false)
+                } else {
+                    Err(VaultmuxError::Other(anyhow::anyhow!("AWS error: {:?}", e)))
+                }
+            }
         }
     }
 

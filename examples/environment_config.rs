@@ -13,7 +13,7 @@
 //! - AZURE_KEYVAULT_URL: Azure Key Vault URL (for Azure backend)
 
 use std::env;
-use vaultmux::{factory, Backend, BackendType, Config};
+use vaultmux::{factory, BackendType, Config};
 
 fn get_backend_from_env() -> vaultmux::Result<BackendType> {
     let backend_str = env::var("VAULT_BACKEND").unwrap_or_else(|_| "mock".to_string());

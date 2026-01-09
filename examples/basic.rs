@@ -1,6 +1,6 @@
 //! Basic usage example with the mock backend.
 
-use vaultmux::{factory, Backend, Config};
+use vaultmux::Config;
 
 #[tokio::main]
 async fn main() -> vaultmux::Result<()> {

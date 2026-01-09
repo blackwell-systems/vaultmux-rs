@@ -2,7 +2,7 @@
 //!
 //! Run with: cargo run --example basic_usage
 
-use vaultmux::{factory, Backend, BackendType, Config};
+use vaultmux::{factory, BackendType, Config};
 
 #[tokio::main]
 async fn main() -> vaultmux::Result<()> {

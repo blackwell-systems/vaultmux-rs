@@ -24,13 +24,17 @@ fn init_library() {
 }
 
 fn aws_config() -> Config {
+    aws_config_with_prefix("test-")
+}
+
+fn aws_config_with_prefix(prefix: &str) -> Config {
     let endpoint = std::env::var("LOCALSTACK_ENDPOINT")
         .unwrap_or_else(|_| "http://localhost:4566".to_string());
 
     Config::new(BackendType::AWSSecretsManager)
         .with_option("region", "us-east-1")
         .with_option("endpoint", endpoint)
-        .with_prefix("test-")
+        .with_prefix(prefix)
 }
 
 async fn setup_backend() -> (Box<dyn Backend>, std::sync::Arc<dyn vaultmux::Session>) {
@@ -153,9 +157,9 @@ async fn test_aws_list() {
 
     // Create multiple secrets
     let secrets = vec![
-        ("test-list-1", "value1"),
-        ("test-list-2", "value2"),
-        ("test-list-3", "value3"),
+        ("list-1", "value1"),
+        ("list-2", "value2"),
+        ("list-3", "value3"),
     ];
 
     for (name, value) in &secrets {
@@ -174,7 +178,7 @@ async fn test_aws_list() {
     // Should find all our test secrets
     let test_items: Vec<_> = items
         .iter()
-        .filter(|item| item.name.starts_with("test-list-"))
+        .filter(|item| item.name.starts_with("list-"))
         .collect();
 
     assert!(
@@ -256,7 +260,21 @@ async fn test_aws_get_item_with_metadata() {
 #[tokio::test]
 #[ignore]
 async fn test_aws_prefix_isolation() {
-    let (mut backend, session) = setup_backend().await;
+    // Use unique prefix for this test to avoid conflicts with other tests
+    init_library();
+    
+    std::env::set_var("AWS_ACCESS_KEY_ID", "test");
+    std::env::set_var("AWS_SECRET_ACCESS_KEY", "test");
+    std::env::set_var("AWS_REGION", "us-east-1");
+
+    let config = aws_config_with_prefix("prefix-test-");
+    let mut backend = factory::new_backend(config).expect("Failed to create backend");
+    backend.init().await.expect("Failed to initialize backend");
+
+    let session = backend
+        .authenticate()
+        .await
+        .expect("Failed to authenticate");
 
     // Clean up any leftover secrets from previous test runs
     let existing_items = backend.list_items(&*session).await.unwrap_or_default();
@@ -264,7 +282,7 @@ async fn test_aws_prefix_isolation() {
         backend.delete_item(&item.name, &*session).await.ok();
     }
 
-    // Our backend has "test-" prefix
+    // Our backend has "prefix-test-" prefix
     // Create a secret
     backend
         .create_item("isolated", "value", &*session)
@@ -283,7 +301,7 @@ async fn test_aws_prefix_isolation() {
     // All items should have names without the prefix (stripped)
     for item in &items {
         assert!(
-            !item.name.starts_with("test-"),
+            !item.name.starts_with("prefix-test-"),
             "Prefix should be stripped from item names, got: {}",
             item.name
         );

@@ -221,23 +221,31 @@ impl Backend for AWSBackend {
                     continue;
                 };
 
-                // Filter by prefix
-                if let Some(name) = full_name.strip_prefix(&self.prefix) {
-                    items.push(Item {
-                        id: secret.arn().unwrap_or("").to_string(),
-                        name: name.to_string(),
-                        item_type: ItemType::SecureNote,
-                        notes: None, // Don't fetch values for list
-                        fields: None,
-                        location: None,
-                        created: secret.created_date().and_then(|d| {
-                            chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())
-                        }),
-                        modified: secret.last_changed_date().and_then(|d| {
-                            chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())
-                        }),
-                    });
+                // Filter by prefix and strip it from the returned name
+                if !self.prefix.is_empty() && !full_name.starts_with(&self.prefix) {
+                    continue;
                 }
+                
+                let name = if !self.prefix.is_empty() {
+                    full_name.strip_prefix(&self.prefix).unwrap()
+                } else {
+                    full_name
+                };
+
+                items.push(Item {
+                    id: secret.arn().unwrap_or("").to_string(),
+                    name: name.to_string(),
+                    item_type: ItemType::SecureNote,
+                    notes: None, // Don't fetch values for list
+                    fields: None,
+                    location: None,
+                    created: secret.created_date().and_then(|d| {
+                        chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())
+                    }),
+                    modified: secret.last_changed_date().and_then(|d| {
+                        chrono::DateTime::from_timestamp(d.secs(), d.subsec_nanos())
+                    }),
+                });
             }
 
             // Check for more results
